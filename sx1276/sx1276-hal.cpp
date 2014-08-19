@@ -13,6 +13,7 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 #include "sx1276-hal.h"
+#include "debug.h"
 
 const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = 
 {                                                 
@@ -79,6 +80,8 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 {
     Reset( );
     
+    DetectBoardType( );
+    
     RxChainCalibration( );
     
     IoInit( );
@@ -96,6 +99,19 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 //-------------------------------------------------------------------------
 //                      Board relative functions
 //-------------------------------------------------------------------------
+void SX1276MB1xAS::DetectBoardType( void )
+{
+    antSwitch.input( );
+    if( antSwitch == 1 )
+    {
+        boardConnected = 0x01;
+    }
+    else
+    {
+        boardConnected = 0x00;
+    }
+    antSwitch.output( );
+}
 
 void SX1276MB1xAS::IoInit( void )
 {
@@ -153,7 +169,14 @@ uint8_t SX1276MB1xAS::GetPaSelect( uint32_t channel )
 {
     if( channel > RF_MID_BAND_THRESH )
     {
-        return RF_PACONFIG_PASELECT_PABOOST;
+        if( boardConnected == 0x01 )
+        {
+            return RF_PACONFIG_PASELECT_PABOOST;
+        }
+        else
+        {
+            return RF_PACONFIG_PASELECT_RFO;
+        }
     }
     else
     {

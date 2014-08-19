@@ -26,7 +26,7 @@ protected:
     /*!
      * Antenna switch GPIO pins objects
      */
-    DigitalOut antSwitch;
+    DigitalInOut antSwitch;
     
     DigitalIn fake;
     
@@ -42,6 +42,12 @@ public:
     virtual ~SX1276MB1xAS( ) { };
     
     protected:
+    
+    /*!
+     * @brief Detect the board connected by reading the value of the antenna switch pin
+     */
+    virtual void DetectBoardType( void );
+    
     /*!
      * @brief Initializes the radio I/Os pins interface
      */
