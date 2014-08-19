@@ -102,15 +102,19 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 uint8_t SX1276MB1xAS::DetectBoardType( void )
 {
     antSwitch.input( );
+    wait_us( 10 );
     if( antSwitch == 1 )
     {
         boardConnected = SX1276MB1LAS;
+        debug("\r\n     >>>>>>>>>>>>>SX1276MB1LAS \r\n" );
     }
     else
     {
         boardConnected = SX1276MB1MAS;
+        debug("\r\n     >>>>>>>>>>>>>SX1276MB1MAS \r\n" );
     }
     antSwitch.output( );
+    wait_us( 10 );
     
     return ( boardConnected );
 }
@@ -171,7 +175,7 @@ uint8_t SX1276MB1xAS::GetPaSelect( uint32_t channel )
 {
     if( channel > RF_MID_BAND_THRESH )
     {
-        if( boardConnected == 0x01 )
+        if( boardConnected == SX1276MB1LAS )
         {
             return RF_PACONFIG_PASELECT_PABOOST;
         }

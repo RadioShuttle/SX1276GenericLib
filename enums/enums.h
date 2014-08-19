@@ -23,7 +23,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  */
 enum RadioState
 {
-	LOWPOWER,
+	LOWPOWER = 0,
 	IDLE,
 	
 	RX,
@@ -39,7 +39,7 @@ enum RadioState
  */
 enum ModemType
 {
-	MODEM_FSK,
+	MODEM_FSK = 0,
 	MODEM_LORA
 };
 
@@ -48,7 +48,7 @@ enum ModemType
  */
 enum BoardType
 {
-	SX1276MB1MAS,
+	SX1276MB1MAS = 0,
 	SX1276MB1LAS
 };
 /*!
