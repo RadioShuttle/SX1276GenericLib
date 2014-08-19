@@ -99,18 +99,20 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 //-------------------------------------------------------------------------
 //                      Board relative functions
 //-------------------------------------------------------------------------
-void SX1276MB1xAS::DetectBoardType( void )
+uint8_t SX1276MB1xAS::DetectBoardType( void )
 {
     antSwitch.input( );
     if( antSwitch == 1 )
     {
-        boardConnected = 0x01;
+        boardConnected = SX1276MB1LAS;
     }
     else
     {
-        boardConnected = 0x00;
+        boardConnected = SX1276MB1MAS;
     }
     antSwitch.output( );
+    
+    return ( boardConnected );
 }
 
 void SX1276MB1xAS::IoInit( void )

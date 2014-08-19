@@ -42,12 +42,7 @@ public:
     virtual ~SX1276MB1xAS( ) { };
     
     protected:
-    
-    /*!
-     * @brief Detect the board connected by reading the value of the antenna switch pin
-     */
-    virtual void DetectBoardType( void );
-    
+        
     /*!
      * @brief Initializes the radio I/Os pins interface
      */
@@ -114,6 +109,11 @@ public:
     virtual void SetAntSw( uint8_t rxTx );
     
     public:
+    /*!
+     * @brief Detect the board connected by reading the value of the antenna switch pin
+     */
+    virtual uint8_t DetectBoardType( void );    
+    
     /*!
      * @brief Checks if the given RF frequency is supported by the hardware
      *

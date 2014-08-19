@@ -43,7 +43,14 @@ enum ModemType
 	MODEM_LORA
 };
 
-
+/*!
+ *	Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
+ */
+enum BoardType
+{
+	SX1276MB1MAS,
+	SX1276MB1LAS
+};
 /*!
  * Radio FSK modem parameters
  */
