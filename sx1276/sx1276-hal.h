@@ -15,7 +15,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #ifndef __SX1276_HAL_H__
 #define __SX1276_HAL_H__
 #include "sx1276.h"
-#include "debug.h"
 
 /*! 
  * Actual implementation of a SX1276 radio, includes some modifications to make it compatible with the MB1 LAS board
@@ -42,7 +41,6 @@ public:
     virtual ~SX1276MB1xAS( ) { };
     
     protected:
-        
     /*!
      * @brief Initializes the radio I/Os pins interface
      */

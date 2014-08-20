@@ -55,7 +55,7 @@ protected:
     /*!
      * SX1276 Reset pin
      */
-    DigitalOut reset;
+    DigitalInOut reset;
 
     /*!
      * SX1276 DIO pins

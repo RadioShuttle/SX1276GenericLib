@@ -14,8 +14,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 #include "sx1276.h"
 
-#include "debug.h"
-
 const FskBandwidth_t SX1276::FskBandwidths[] =
 {       
     { 2600  , 0x17 },   
@@ -65,6 +63,8 @@ SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) (
 	this->dioIrq[3] = &SX1276::OnDio3Irq;
 	this->dioIrq[4] = &SX1276::OnDio4Irq;
 	this->dioIrq[5] = NULL;
+	
+	this->settings.State = IDLE;
 }
 
 SX1276::~SX1276( )
@@ -131,7 +131,7 @@ bool SX1276::IsChannelFree( ModemType modem, uint32_t freq, int8_t rssiThresh )
     
     SetOpMode( RF_OPMODE_RECEIVER );
 
-    wait( 0.001 );
+    wait_ms( 1 );
     
     rssi = GetRssi( modem );
     
@@ -170,7 +170,7 @@ uint32_t SX1276::Random( void )
 
     for( i = 0; i < 32; i++ )
     {
-        wait( 0.001 );
+        wait_ms( 1 );
         // Unfiltered RSSI value reading. Only takes the LSB value
         rnd |= ( ( uint32_t )Read( REG_LR_RSSIWIDEBAND ) & 0x01 ) << i;
     }
@@ -514,7 +514,7 @@ double SX1276::TimeOnAir( ModemType modem, uint8_t pktLen )
     {
     case MODEM_FSK:
         {
-            airTime = floor( ( 8 * ( this->settings.Fsk.PreambleLen +
+            airTime = ceil( ( 8 * ( this->settings.Fsk.PreambleLen +
                                      ( ( Read( REG_SYNCCONFIG ) & ~RF_SYNCCONFIG_SYNCSIZE_MASK ) + 1 ) +
                                      ( ( this->settings.Fsk.FixLen == 0x01 ) ? 0.0 : 1.0 ) +
                                      ( ( ( Read( REG_PACKETCONFIG1 ) & ~RF_PACKETCONFIG1_ADDRSFILTERING_MASK ) != 0x00 ) ? 1.0 : 0 ) +
@@ -644,7 +644,7 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
             if( ( Read( REG_OPMODE ) & ~RF_OPMODE_MASK ) == RF_OPMODE_SLEEP )
             {
                 Standby( );
-                wait( 0.001 );
+                wait_ms( 1 );
             }
             // Write payload buffer
             WriteFifo( buffer, size );
@@ -721,7 +721,7 @@ void SX1276::Rx( uint32_t timeout )
             Write( REG_LR_IRQFLAGSMASK, //RFLR_IRQFLAGS_RXTIMEOUT |
                                               //RFLR_IRQFLAGS_RXDONE |
                                               //RFLR_IRQFLAGS_PAYLOADCRCERROR |
-                                              //RFLR_IRQFLAGS_VALIDHEADER |
+                                              RFLR_IRQFLAGS_VALIDHEADER |
                                               RFLR_IRQFLAGS_TXDONE |
                                               RFLR_IRQFLAGS_CADDONE |
                                               RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
@@ -729,7 +729,6 @@ void SX1276::Rx( uint32_t timeout )
             
             // DIO0=RxDone
             Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
-            Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_01 );
             Write( REG_LR_FIFORXBASEADDR, 0 );
             Write( REG_LR_FIFOADDRPTR, 0 );
         }
@@ -865,29 +864,27 @@ void SX1276::SetOpMode( uint8_t opMode )
 
 void SX1276::SetModem( ModemType modem )
 {
-    if( this->settings.Modem == modem )
+    if( this->settings.Modem != modem )
     {
-        return;
-    }
-
-    this->settings.Modem = modem;
-    switch( this->settings.Modem )
-    {
-    default:
-    case MODEM_FSK:
-        SetOpMode( RF_OPMODE_SLEEP );
-        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_OFF );
-    
-        Write( REG_DIOMAPPING1, 0x00 );
-        Write( REG_DIOMAPPING2, 0x30 ); // DIO5=ModeReady
-        break;
-    case MODEM_LORA:
-        SetOpMode( RF_OPMODE_SLEEP );
-        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_ON );
-
-        Write( REG_DIOMAPPING1, 0x00 );
-        Write( REG_DIOMAPPING2, 0x00 );
-        break;
+	    this->settings.Modem = modem;
+	    switch( this->settings.Modem )
+	    {
+	    default:
+	    case MODEM_FSK:
+	        SetOpMode( RF_OPMODE_SLEEP );
+	        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_OFF );
+	    
+	        Write( REG_DIOMAPPING1, 0x00 );
+	        Write( REG_DIOMAPPING2, 0x30 ); // DIO5=ModeReady
+	        break;
+	    case MODEM_LORA:
+	        SetOpMode( RF_OPMODE_SLEEP );
+	        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_ON );
+	
+	        Write( REG_DIOMAPPING1, 0x00 );
+	        Write( REG_DIOMAPPING2, 0x00 );
+	        break;
+	    }
     }
 }
 
@@ -1055,7 +1052,7 @@ void SX1276::OnDio0Irq( void )
                         }
                         rxTimeoutTimer.detach( );
 
-                        if( (rxError != NULL ) )
+                        if( ( rxError != NULL ) )
                         {
                             rxError( ); 
                         }

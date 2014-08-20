@@ -13,7 +13,6 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 #include "sx1276-hal.h"
-#include "debug.h"
 
 const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = 
 {                                                 
@@ -102,19 +101,17 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 uint8_t SX1276MB1xAS::DetectBoardType( void )
 {
     antSwitch.input( );
-    wait_us( 10 );
+    wait_ms( 1 );
     if( antSwitch == 1 )
     {
         boardConnected = SX1276MB1LAS;
-        debug("\r\n     >>>>>>>>>>>>>SX1276MB1LAS \r\n" );
     }
     else
     {
         boardConnected = SX1276MB1MAS;
-        debug("\r\n     >>>>>>>>>>>>>SX1276MB1MAS \r\n" );
     }
     antSwitch.output( );
-    wait_us( 10 );
+    wait_ms( 1 );
     
     return ( boardConnected );
 }
@@ -136,7 +133,6 @@ void SX1276MB1xAS::RadioRegistersInit( ){
 
 void SX1276MB1xAS::SpiInit( void )
 {
-    
     nss = 1;    
     spi.format( 8,0 );   
     uint32_t frequencyToSet = 8000000;
@@ -246,9 +242,10 @@ bool SX1276MB1xAS::CheckRfFrequency( uint32_t frequency )
 
 void SX1276MB1xAS::Reset( void )
 {
+    reset.output();
     reset = 0;
     wait_ms( 1 );
-    reset = 1;
+    reset.input();
     wait_ms( 6 );
 }
     
