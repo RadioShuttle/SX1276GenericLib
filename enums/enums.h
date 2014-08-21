@@ -49,7 +49,8 @@ enum ModemType
 enum BoardType
 {
 	SX1276MB1MAS = 0,
-	SX1276MB1LAS
+	SX1276MB1LAS,
+	UNKNOWN
 };
 /*!
  * Radio FSK modem parameters
@@ -118,7 +119,7 @@ typedef struct
  */
 typedef struct
 {
-    RadioState      	     State;
+    RadioState				 State;
     ModemType		         Modem;
     uint32_t                 Channel;
     RadioFskSettings_t       Fsk;

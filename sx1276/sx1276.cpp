@@ -589,6 +589,8 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
 {
     uint32_t txTimeout = 0;
 
+    this->settings.State = IDLE;
+
     switch( this->settings.Modem )
     {
     case MODEM_FSK:
@@ -687,7 +689,7 @@ void SX1276::Rx( uint32_t timeout )
             // DIO3=FifoEmpty
             // DIO4=Preamble
             // DIO5=ModeReady
-            Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RF_DIOMAPPING1_DIO0_MASK &
+            Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RF_DIOMAPPING1_DIO0_MASK & RF_DIOMAPPING1_DIO1_MASK &
                                                                             RF_DIOMAPPING1_DIO2_MASK ) |
                                                                             RF_DIOMAPPING1_DIO0_00 |
                                                                             RF_DIOMAPPING1_DIO2_11 );
@@ -781,7 +783,7 @@ void SX1276::Tx( uint32_t timeout )
             // DIO3=FifoEmpty
             // DIO4=LowBat
             // DIO5=ModeReady
-            Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RF_DIOMAPPING1_DIO0_MASK &
+            Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RF_DIOMAPPING1_DIO0_MASK & RF_DIOMAPPING1_DIO1_MASK &
                                                                             RF_DIOMAPPING1_DIO2_MASK ) );
 
             Write( REG_DIOMAPPING2, ( Read( REG_DIOMAPPING2 ) & RF_DIOMAPPING2_DIO4_MASK &
@@ -890,8 +892,6 @@ void SX1276::SetModem( ModemType modem )
 
 void SX1276::OnTimeoutIrq( void )
 {
-    RadioState state = IDLE;
-
     switch( this->settings.State )
     {
     case RX:
@@ -910,17 +910,13 @@ void SX1276::OnTimeoutIrq( void )
 
             if( this->settings.Fsk.RxContinuous == true )
             {
-                state = this->settings.State;
                 // Continuous mode restart Rx chain
                 Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
             }
             else
             {
-                rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, ( 8.0 * ( this->settings.Fsk.PreambleLen +
-                                                         ( ( Read( REG_SYNCCONFIG ) &
-                                                            ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
-                                                         1.0 ) + 1.0 ) /
-                                                        ( double )this->settings.Fsk.Datarate ) * 1e6 ) ;
+                this->settings.State = IDLE;
+                rxTimeoutSyncWord.detach( );
             }
         }
         if( ( rxTimeout != NULL ) )
@@ -929,6 +925,7 @@ void SX1276::OnTimeoutIrq( void )
         }
         break;
     case TX:
+    	this->settings.State = IDLE;
         if( ( txTimeout != NULL ) )
         {
             txTimeout( );
@@ -937,7 +934,6 @@ void SX1276::OnTimeoutIrq( void )
     default:
         break;
     }
-    this->settings.State = state;
 }
 
 void SX1276::OnDio0Irq( void )

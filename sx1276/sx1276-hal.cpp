@@ -25,7 +25,7 @@ const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] =
     { MODEM_FSK , REG_SYNCVALUE1         , 0xC1 },
     { MODEM_FSK , REG_SYNCVALUE2         , 0x94 },
     { MODEM_FSK , REG_SYNCVALUE3         , 0xC1 },
-    { MODEM_FSK , REG_PACKETCONFIG1      , 0xD8 },
+    { MODEM_FSK , REG_PACKETCONFIG1      , 0x98 },
     { MODEM_FSK , REG_FIFOTHRESH         , 0x8F },
     { MODEM_FSK , REG_IMAGECAL           , 0x02 },
     { MODEM_FSK , REG_DIOMAPPING1        , 0x00 },
@@ -79,6 +79,8 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 {
     Reset( );
     
+    boardConnected = UNKNOWN;
+    
     DetectBoardType( );
     
     RxChainCalibration( );
@@ -100,19 +102,21 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 //-------------------------------------------------------------------------
 uint8_t SX1276MB1xAS::DetectBoardType( void )
 {
-    antSwitch.input( );
-    wait_ms( 1 );
-    if( antSwitch == 1 )
+    if( boardConnected == UNKNOWN )
     {
-        boardConnected = SX1276MB1LAS;
+        antSwitch.input( );
+        wait_ms( 1 );
+        if( antSwitch == 1 )
+        {
+            boardConnected = SX1276MB1LAS;
+        }
+        else
+        {
+            boardConnected = SX1276MB1MAS;
+        }
+        antSwitch.output( );
+        wait_ms( 1 );
     }
-    else
-    {
-        boardConnected = SX1276MB1MAS;
-    }
-    antSwitch.output( );
-    wait_ms( 1 );
-    
     return ( boardConnected );
 }
 
