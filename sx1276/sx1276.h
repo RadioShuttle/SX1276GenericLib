@@ -105,7 +105,8 @@ protected:
 	void RxChainCalibration( void );
 
 public:
-	SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), void ( *rxTimeout ) ( ), void ( *rxError ) ( ),
+	SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), 
+			void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ),
 			PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 ); 
     SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), void ( *rxTimeout ) ( ), void ( *rxError ) ( ) );
@@ -177,6 +178,8 @@ public:
      *                          LoRa: timeout in symbols
      * @param [IN] fixLen       Fixed length packets [0: variable, 1: fixed]
      * @param [IN] crcOn        Enables/Disables the CRC [0: OFF, 1: ON]
+     * @param [IN] FreqHopOn    Enables disables the intra-packet frequency hopping  [0: OFF, 1: ON] (LoRa only)
+ 	 * @param [IN] HopPeriod    Number of symbols bewteen each hop (LoRa only)
      * @param [IN] iqInverted   Inverts IQ signals ( LoRa only )
      *                          FSK : N/A ( set to 0 )
      *                          LoRa: [0: not inverted, 1: inverted]
@@ -187,7 +190,8 @@ public:
                                uint32_t datarate, uint8_t coderate,
                                uint32_t bandwidthAfc, uint16_t preambleLen,
                                uint16_t symbTimeout, bool fixLen,
-                               bool crcOn, bool iqInverted, bool rxContinuous );
+                               bool crcOn, bool FreqHopOn, uint8_t HopPeriod,
+                               bool iqInverted, bool rxContinuous );
     
 	/*!
      * @brief Sets the transmission parameters
@@ -211,6 +215,8 @@ public:
      * @param [IN] preambleLen  Sets the preamble length
      * @param [IN] fixLen       Fixed length packets [0: variable, 1: fixed]
      * @param [IN] crcOn        Enables disables the CRC [0: OFF, 1: ON]
+     * @param [IN] FreqHopOn    Enables disables the intra-packet frequency hopping  [0: OFF, 1: ON] (LoRa only)
+ 	 * @param [IN] HopPeriod    Number of symbols bewteen each hop (LoRa only)
      * @param [IN] iqInverted   Inverts IQ signals ( LoRa only )
      *                          FSK : N/A ( set to 0 )
      *                          LoRa: [0: not inverted, 1: inverted]
@@ -219,8 +225,8 @@ public:
     virtual void SetTxConfig( ModemType modem, int8_t power, uint32_t fdev,
                               uint32_t bandwidth, uint32_t datarate,
                               uint8_t coderate, uint16_t preambleLen,
-                              bool fixLen, bool crcOn,
-                              bool iqInverted, uint32_t timeout );
+                              bool fixLen, bool crcOn, bool FreqHopOn,
+                              uint8_t HopPeriod, bool iqInverted, uint32_t timeout );
     
 	/*!
      * @brief Computes the packet time on air for the given payload

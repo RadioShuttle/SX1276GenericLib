@@ -99,6 +99,8 @@ typedef struct
     uint16_t PreambleLen;
     bool     FixLen;
     bool     CrcOn;
+    bool 	 FreqHopOn;
+    uint8_t  HopPeriod;
     bool     IqInverted;
     bool     RxContinuous;
     uint32_t TxTimeout;

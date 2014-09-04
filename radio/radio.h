@@ -62,6 +62,13 @@ protected:
      */
 	void ( *rxError ) ( );
 	
+	/*!
+     * \brief  FHSS Change Channel callback prototype.
+     *
+     * \param [IN] CurrentChannel   Index number of the current channel
+     */
+    void ( *fhssChangeChannel )( uint8_t CurrentChannel );
+	
 public:
 	//-------------------------------------------------------------------------
 	//						Constructor
@@ -74,7 +81,8 @@ public:
 	 * @param [IN]	rxTimeout
 	 * @param [IN]	rxError
 	 */
-	Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), void ( *rxTimeout ) ( ), void ( *rxError ) ( ) );
+	Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), 
+		   void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ) );
 	virtual ~Radio( ) {};
 
 	//-------------------------------------------------------------------------
@@ -144,6 +152,8 @@ public:
      *                          LoRa: timeout in symbols
      * @param [IN] fixLen       Fixed length packets [0: variable, 1: fixed]
      * @param [IN] crcOn        Enables/Disables the CRC [0: OFF, 1: ON]
+     * @param [IN] FreqHopOn    Enables disables the intra-packet frequency hopping  [0: OFF, 1: ON] (LoRa only)
+ 	 * @param [IN] HopPeriod    Number of symbols bewteen each hop (LoRa only)
      * @param [IN] iqInverted   Inverts IQ signals ( LoRa only )
      *                          FSK : N/A ( set to 0 )
      *                          LoRa: [0: not inverted, 1: inverted]
@@ -154,7 +164,8 @@ public:
                                uint32_t datarate, uint8_t coderate,
                                uint32_t bandwidthAfc, uint16_t preambleLen,
                                uint16_t symbTimeout, bool fixLen,
-                               bool crcOn, bool iqInverted, bool rxContinuous ) = 0;
+                               bool crcOn, bool FreqHopOn, uint8_t HopPeriod,
+                               bool iqInverted, bool rxContinuous ) = 0;
     
 	/*!
      * @brief Sets the transmission parameters
@@ -178,16 +189,18 @@ public:
      * @param [IN] preambleLen  Sets the preamble length
      * @param [IN] fixLen       Fixed length packets [0: variable, 1: fixed]
      * @param [IN] crcOn        Enables disables the CRC [0: OFF, 1: ON]
+     * @param [IN] FreqHopOn    Enables disables the intra-packet frequency hopping  [0: OFF, 1: ON] (LoRa only)
+ 	 * @param [IN] HopPeriod    Number of symbols bewteen each hop (LoRa only)
      * @param [IN] iqInverted   Inverts IQ signals ( LoRa only )
      *                          FSK : N/A ( set to 0 )
      *                          LoRa: [0: not inverted, 1: inverted]
      * @param [IN] timeout      Transmission timeout [us]
      */
     virtual void SetTxConfig( ModemType modem, int8_t power, uint32_t fdev,
-                             uint32_t bandwidth, uint32_t datarate,
-                             uint8_t coderate, uint16_t preambleLen,
-                             bool fixLen, bool crcOn,
-                             bool iqInverted, uint32_t timeout ) = 0;
+                              uint32_t bandwidth, uint32_t datarate,
+                              uint8_t coderate, uint16_t preambleLen,
+                              bool fixLen, bool crcOn, bool FreqHopOn,
+                              uint8_t HopPeriod, bool iqInverted, uint32_t timeout ) = 0;
     
 	/*!
      * @brief Checks if the given RF frequency is supported by the hardware
