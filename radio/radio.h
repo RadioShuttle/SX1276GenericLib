@@ -50,7 +50,7 @@ protected:
      *                     FSK : N/A ( set to 0 )
      *                     LoRa: SNR value in dB
      */
-	void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr );
+	void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 
     /*!
      * @brief  Rx Timeout callback prototype.
@@ -68,6 +68,11 @@ protected:
      * \param [IN] CurrentChannel   Index number of the current channel
      */
     void ( *fhssChangeChannel )( uint8_t CurrentChannel );
+
+    /*!
+     * @brief CAD Done callback prototype.
+     */
+    void ( *cadDone ) ( );
 	
 public:
 	//-------------------------------------------------------------------------
@@ -81,8 +86,8 @@ public:
 	 * @param [IN]	rxTimeout
 	 * @param [IN]	rxError
 	 */
-	Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), 
-		   void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ) );
+	Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
+		   void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ) );
 	virtual ~Radio( ) {};
 
 	//-------------------------------------------------------------------------
@@ -239,7 +244,12 @@ public:
 	/*!
      * @brief Sets the radio in standby mode
      */
-    virtual void Standby( void )= 0;
+    virtual void Standby( void ) = 0;
+    
+	/*!
+     * @brief Sets the radio in CAD mode
+     */
+    virtual void StartCad( void ) = 0;
     
 	/*!
      * @brief Sets the radio in reception mode for the given time
@@ -260,7 +270,7 @@ public:
      *
      * @retval rssiValue Current RSSI value in [dBm]
      */
-    virtual int8_t GetRssi ( ModemType modem ) = 0;
+    virtual int16_t GetRssi ( ModemType modem ) = 0;
     
 	/*!
      * @brief Writes the radio register at the specified address

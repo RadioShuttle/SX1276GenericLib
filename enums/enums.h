@@ -19,7 +19,8 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  *	State of the radio:
  *	[IDLE,
  *	 RX_RUNNING, RX_TIMEOUT, RX_ERROR,
- * 	 TX_RUNNING, TX_TIMEOUT]
+ * 	 TX_RUNNING, TX_TIMEOUT,
+ 	 CAD]
  */
 enum RadioState
 {
@@ -31,7 +32,10 @@ enum RadioState
 	RX_ERROR,
 	
 	TX,
-	TX_TIMEOUT
+	TX_TIMEOUT,
+    
+    CAD,
+    CAD_DONE
 };
 
 /*!

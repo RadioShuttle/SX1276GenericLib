@@ -105,11 +105,12 @@ protected:
 	void RxChainCalibration( void );
 
 public:
-	SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), 
-			void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ),
+	SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
+			void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ),
 			PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 ); 
-    SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), void ( *rxTimeout ) ( ), void ( *rxError ) ( ) );
+    SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
+            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ) );
 	virtual ~SX1276( );
 	
 	//-------------------------------------------------------------------------
@@ -272,13 +273,18 @@ public:
      *                     [0: continuous, others timeout]
      */
     virtual void Tx( uint32_t timeout );
+    
+	/*!
+     * @brief Start a Channel Activity Detection
+     */
+    virtual void StartCad( void );	
 	
 	/*!
      * @brief Reads the current RSSI value
      *
      * @retval rssiValue Current RSSI value in [dBm]
      */
-    virtual int8_t GetRssi ( ModemType modem );
+    virtual int16_t GetRssi ( ModemType modem );
     
 	/*!
      * @brief Writes the radio register at the specified address

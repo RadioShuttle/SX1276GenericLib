@@ -40,11 +40,11 @@ const FskBandwidth_t SX1276::FskBandwidths[] =
 };
 
 
-SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int8_t rssi, int8_t snr ), 
-				void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ),
+SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
+				void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ),
 			    PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                 PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 )
-			:   Radio( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel ),
+			:   Radio( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone ),
 				spi( mosi, miso, sclk ),
 				nss( nss ),
 				reset( reset ),
@@ -124,7 +124,7 @@ void SX1276::SetChannel( uint32_t freq )
 
 bool SX1276::IsChannelFree( ModemType modem, uint32_t freq, int8_t rssiThresh )
 {
-    int8_t rssi = 0;
+    int16_t rssi = 0;
     
     SetModem( modem );
 
@@ -138,7 +138,7 @@ bool SX1276::IsChannelFree( ModemType modem, uint32_t freq, int8_t rssiThresh )
     
     Sleep( );
     
-    if( rssi > rssiThresh )
+    if( rssi > ( int16_t )rssiThresh )
     {
         return false;
     }
@@ -871,9 +871,41 @@ void SX1276::Tx( uint32_t timeout )
     SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
-int8_t SX1276::GetRssi( ModemType modem )
+void SX1276::StartCad( void )
 {
-    int8_t rssi = 0;
+    switch( this->settings.Modem )
+    {
+    case MODEM_FSK:
+        {
+           
+        }
+        break;
+    case MODEM_LORA:
+        {
+            Write( REG_LR_IRQFLAGSMASK, RFLR_IRQFLAGS_RXTIMEOUT |
+                                        RFLR_IRQFLAGS_RXDONE |
+                                        RFLR_IRQFLAGS_PAYLOADCRCERROR |
+                                        RFLR_IRQFLAGS_VALIDHEADER |
+                                        RFLR_IRQFLAGS_TXDONE |
+                                        //RFLR_IRQFLAGS_CADDONE |
+                                        RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
+                                        RFLR_IRQFLAGS_CADDETECTED );
+                                          
+            // DIO3=CADDone
+            Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
+            
+            this->settings.State = CAD;
+            SetOpMode( RFLR_OPMODE_CAD );
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+int16_t SX1276::GetRssi( ModemType modem )
+{
+    int16_t rssi = 0;
 
     switch( modem )
     {
@@ -1126,7 +1158,7 @@ void SX1276::OnDio0Irq( void )
                         snr = ( this->settings.LoRaPacketHandler.SnrValue & 0xFF ) >> 2;
                     }
 
-                    int8_t rssi = Read( REG_LR_PKTRSSIVALUE );
+                    int16_t rssi = Read( REG_LR_PKTRSSIVALUE );
                     if( this->settings.LoRaPacketHandler.SnrValue < 0 )
                     {
                         if( this->settings.Channel > RF_MID_BAND_THRESH )
@@ -1340,6 +1372,10 @@ void SX1276::OnDio3Irq( void )
     case MODEM_FSK:
         break;
     case MODEM_LORA:
+        if( ( cadDone != NULL ) )
+        {
+            cadDone( );
+        }
         break;
     default:
         break;
