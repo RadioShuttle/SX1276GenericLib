@@ -4,7 +4,7 @@
  \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
-( C )2014 Semtech
+    ( C )2014 Semtech
 
 Description: Actual implementation of a SX1276 radio, inherits Radio
 
@@ -762,7 +762,7 @@ void SX1276::Rx( uint32_t timeout )
                                               RFLR_IRQFLAGS_VALIDHEADER |
                                               RFLR_IRQFLAGS_TXDONE |
                                               RFLR_IRQFLAGS_CADDONE |
-                                              //RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
+                                              RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
                                               RFLR_IRQFLAGS_CADDETECTED );
                                               
                 // DIO0=RxDone
@@ -844,7 +844,7 @@ void SX1276::Tx( uint32_t timeout )
                                               RFLR_IRQFLAGS_CADDETECTED );
                                               
                 // DIO0=TxDone
-                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
+                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_01 );
                 // DIO2=FhssChangeChannel
                 Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO2_MASK ) | RFLR_DIOMAPPING1_DIO2_00 );  
             }
@@ -1372,6 +1372,8 @@ void SX1276::OnDio3Irq( void )
     case MODEM_FSK:
         break;
     case MODEM_LORA:
+        // Clear Irq
+        Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
         if( ( cadDone != NULL ) )
         {
             cadDone( );
