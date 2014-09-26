@@ -19,7 +19,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "./enums/enums.h"
 
 class SX1276;
-class SX1276FrdmExtBoard;
 class SX1276MB1xAS;
 /*!
  * Hardware IO IRQ callback function definition
@@ -31,7 +30,6 @@ typedef void ( SX1276::*DioIrqHandler )( void );
  */
 typedef void ( SX1276::*Trigger )( void );
 typedef void ( SX1276MB1xAS::*TriggerMB1xAS )( void );
-typedef void ( SX1276FrdmExtBoard::*TriggerFrdmExtBoard )( void );
 
 /*!
  * FSK bandwidth definition

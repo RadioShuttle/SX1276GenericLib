@@ -32,9 +32,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 /*!
  * Constant values need to compute the RSSI value
  */
-#define NOISE_ABSOLUTE_ZERO                         -174.0
-#define NOISE_FIGURE_LF                             4.0
-#define NOISE_FIGURE_HF                             6.0
 #define RSSI_OFFSET_LF                              -164.0
 #define RSSI_OFFSET_HF                              -157.0
 
