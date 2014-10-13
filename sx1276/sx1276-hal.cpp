@@ -34,18 +34,16 @@ const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] =
 };
 
 SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-                            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ),
+                            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool ChannelActivityDetected ),
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
                             PinName antSwitch )
                             : SX1276( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone, mosi, miso, sclk, nss, reset, dio0, dio1, dio2, dio3, dio4, dio5),
                             antSwitch( antSwitch ),
-                        #if( defined ( TARGET_KL25Z ) ||  defined ( TARGET_LPC11U6X ) )
-                            fake( A3 )
-                        #elif defined ( TARGET_NUCLEO_L152RE )
-                            fake( D8 )
+                        #if( defined ( TARGET_NUCLEO_L152RE ) )
+                            fake( D8 ) 
                         #else
-                            #warning "Check availability of IRQs on your selected board"
+                            fake( A3 )
                         #endif
 {
     Reset( );
@@ -66,17 +64,15 @@ SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void (
 }
 
 SX1276MB1xAS::SX1276MB1xAS( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-                            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ) ) 
-                        #if( defined ( TARGET_KL25Z ) ||  defined ( TARGET_LPC11U6X ) )
-                        :   SX1276( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
-                            antSwitch( A4 ), 
-                            fake( A3 )
-                        #elif defined ( TARGET_NUCLEO_L152RE )
+                            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool ChannelActivityDetected ) ) 
+                        #if defined ( TARGET_NUCLEO_L152RE )
                         :   SX1276( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone, D11, D12, D13, D10, A0, D2, D3, D4, D5, A3, D9 ), // For NUCLEO L152RE dio4 is on port A3
                             antSwitch( A4 ),
                             fake( D8 )
                         #else
-                            #warning "Check availability of IRQs on your selected board"
+                        :   SX1276( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
+                            antSwitch( A4 ), 
+                            fake( A3 )
                         #endif
 {
     Reset( );

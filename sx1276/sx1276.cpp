@@ -41,7 +41,7 @@ const FskBandwidth_t SX1276::FskBandwidths[] =
 
 
 SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-				void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ),
+				void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool ChannelActivityDetected ),
 			    PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                 PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 )
 			:   Radio( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone ),
@@ -888,8 +888,9 @@ void SX1276::StartCad( void )
                                         RFLR_IRQFLAGS_VALIDHEADER |
                                         RFLR_IRQFLAGS_TXDONE |
                                         //RFLR_IRQFLAGS_CADDONE |
-                                        RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
-                                        RFLR_IRQFLAGS_CADDETECTED );
+                                        RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL // |
+                                        //RFLR_IRQFLAGS_CADDETECTED 
+                                        );
                                           
             // DIO3=CADDone
             Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
@@ -972,7 +973,8 @@ void SX1276::SetModem( ModemType modem )
 	    case MODEM_LORA:
 	        SetOpMode( RF_OPMODE_SLEEP );
 	        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_ON );
-	
+			Write( 0x30, 0x00 ); //  IF = 0
+	        Write( REG_LR_DETECTOPTIMIZE, ( Read( REG_LR_DETECTOPTIMIZE ) & 0x7F ) ); // Manual IF
 	        Write( REG_DIOMAPPING1, 0x00 );
 	        Write( REG_DIOMAPPING2, 0x00 );
 	        break;
@@ -1372,11 +1374,23 @@ void SX1276::OnDio3Irq( void )
     case MODEM_FSK:
         break;
     case MODEM_LORA:
-        // Clear Irq
-        Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
-        if( ( cadDone != NULL ) )
-        {
-            cadDone( );
+    	if( ( Read( REG_LR_IRQFLAGS ) & 0x01 ) == 0x01 )
+    	{
+	        // Clear Irq
+    		Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED_MASK | RFLR_IRQFLAGS_CADDONE);
+	        if( ( cadDone != NULL ) )
+	        {
+	            cadDone( true );
+	        }
+        }
+        else
+        {		
+	        // Clear Irq
+	        Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
+	        if( ( cadDone != NULL ) )
+	        {
+	            cadDone( false );
+	        }
         }
         break;
     default:

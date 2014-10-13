@@ -71,8 +71,10 @@ protected:
 
     /*!
      * @brief CAD Done callback prototype.
+     *
+     * @param [IN] ChannelDetected    Channel Activity detected during the CAD
      */
-    void ( *cadDone ) ( );
+    void ( *cadDone ) ( bool ChannelActivityDetected );
 	
 public:
 	//-------------------------------------------------------------------------
@@ -87,7 +89,7 @@ public:
 	 * @param [IN]	rxError
 	 */
 	Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-		   void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( ) );
+		   void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool ChannelActivityDetected ) );
 	virtual ~Radio( ) {};
 
 	//-------------------------------------------------------------------------
