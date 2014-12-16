@@ -16,45 +16,45 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define __ENUMS_H__
 
 /*!
- *	State of the radio:
- *	[IDLE,
- *	 RX_RUNNING, RX_TIMEOUT, RX_ERROR,
- * 	 TX_RUNNING, TX_TIMEOUT,
- 	 CAD]
+ *    State of the radio:
+ *    [IDLE,
+ *     RX_RUNNING, RX_TIMEOUT, RX_ERROR,
+ *     TX_RUNNING, TX_TIMEOUT,
+       CAD]
  */
 enum RadioState
 {
-	LOWPOWER = 0,
-	IDLE,
-	
-	RX,
-	RX_TIMEOUT,
-	RX_ERROR,
-	
-	TX,
-	TX_TIMEOUT,
+    LOWPOWER = 0,
+    IDLE,
+    
+    RX,
+    RX_TIMEOUT,
+    RX_ERROR,
+    
+    TX,
+    TX_TIMEOUT,
     
     CAD,
     CAD_DONE
 };
 
 /*!
- *	Type of the modem. [LORA / FSK]
+ *    Type of the modem. [LORA / FSK]
  */
 enum ModemType
 {
-	MODEM_FSK = 0,
-	MODEM_LORA
+    MODEM_FSK = 0,
+    MODEM_LORA
 };
 
 /*!
- *	Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
+ *    Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
  */
 enum BoardType
 {
-	SX1276MB1MAS = 0,
-	SX1276MB1LAS,
-	UNKNOWN
+    SX1276MB1MAS = 0,
+    SX1276MB1LAS,
+    UNKNOWN
 };
 /*!
  * Radio FSK modem parameters
@@ -68,6 +68,7 @@ typedef struct
     uint32_t Datarate;
     uint16_t PreambleLen;
     bool     FixLen;
+    uint8_t  PayloadLen;
     bool     CrcOn;
     bool     IqInverted;
     bool     RxContinuous;
@@ -102,8 +103,9 @@ typedef struct
     uint8_t  Coderate;
     uint16_t PreambleLen;
     bool     FixLen;
+    uint8_t  PayloadLen;
     bool     CrcOn;
-    bool 	 FreqHopOn;
+    bool     FreqHopOn;
     uint8_t  HopPeriod;
     bool     IqInverted;
     bool     RxContinuous;
@@ -125,8 +127,8 @@ typedef struct
  */
 typedef struct
 {
-    RadioState				 State;
-    ModemType		         Modem;
+    RadioState               State;
+    ModemType                Modem;
     uint32_t                 Channel;
     RadioFskSettings_t       Fsk;
     RadioFskPacketHandler_t  FskPacketHandler;

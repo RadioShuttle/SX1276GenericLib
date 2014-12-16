@@ -41,37 +41,37 @@ const FskBandwidth_t SX1276::FskBandwidths[] =
 
 
 SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-				void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool ChannelActivityDetected ),
-			    PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
+                void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool channelActivityDetected ),
+                PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                 PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 )
-			:   Radio( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone ),
-				spi( mosi, miso, sclk ),
-				nss( nss ),
-				reset( reset ),
-				dio0( dio0 ), dio1( dio1 ), dio2( dio2 ), dio3( dio3 ), dio4( dio4 ), dio5( dio5 ),
-				isRadioActive( false )
+            :   Radio( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone ),
+                spi( mosi, miso, sclk ),
+                nss( nss ),
+                reset( reset ),
+                dio0( dio0 ), dio1( dio1 ), dio2( dio2 ), dio3( dio3 ), dio4( dio4 ), dio5( dio5 ),
+                isRadioActive( false )
 {
-	wait_ms( 10 );
-	this->rxTx = 0;
-	this->rxBuffer = new uint8_t[RX_BUFFER_SIZE];
-	previousOpMode = RF_OPMODE_STANDBY;
-	
-	this->dioIrq = new DioIrqHandler[6];
+    wait_ms( 10 );
+    this->rxTx = 0;
+    this->rxBuffer = new uint8_t[RX_BUFFER_SIZE];
+    previousOpMode = RF_OPMODE_STANDBY;
+    
+    this->dioIrq = new DioIrqHandler[6];
 
-	this->dioIrq[0] = &SX1276::OnDio0Irq;
-	this->dioIrq[1] = &SX1276::OnDio1Irq;
-	this->dioIrq[2] = &SX1276::OnDio2Irq;
-	this->dioIrq[3] = &SX1276::OnDio3Irq;
-	this->dioIrq[4] = &SX1276::OnDio4Irq;
-	this->dioIrq[5] = NULL;
-	
-	this->settings.State = IDLE;
+    this->dioIrq[0] = &SX1276::OnDio0Irq;
+    this->dioIrq[1] = &SX1276::OnDio1Irq;
+    this->dioIrq[2] = &SX1276::OnDio2Irq;
+    this->dioIrq[3] = &SX1276::OnDio3Irq;
+    this->dioIrq[4] = &SX1276::OnDio4Irq;
+    this->dioIrq[5] = NULL;
+    
+    this->settings.State = IDLE;
 }
 
 SX1276::~SX1276( )
 {
-	delete this->rxBuffer;
-	delete this->dioIrq;
+    delete this->rxBuffer;
+    delete this->dioIrq;
 }
 
 void SX1276::RxChainCalibration( void )
@@ -206,7 +206,8 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
                          uint32_t datarate, uint8_t coderate,
                          uint32_t bandwidthAfc, uint16_t preambleLen,
                          uint16_t symbTimeout, bool fixLen,
-                         bool crcOn, bool FreqHopOn, uint8_t HopPeriod,
+                         uint8_t payloadLen,
+                         bool crcOn, bool freqHopOn, uint8_t hopPeriod,
                          bool iqInverted, bool rxContinuous )
 {
     SetModem( modem );
@@ -219,6 +220,7 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
             this->settings.Fsk.Datarate = datarate;
             this->settings.Fsk.BandwidthAfc = bandwidthAfc;
             this->settings.Fsk.FixLen = fixLen;
+            this->settings.Fsk.PayloadLen = payloadLen;
             this->settings.Fsk.CrcOn = crcOn;
             this->settings.Fsk.IqInverted = iqInverted;
             this->settings.Fsk.RxContinuous = rxContinuous;
@@ -240,6 +242,10 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
                            RF_PACKETCONFIG1_PACKETFORMAT_MASK ) |
                            ( ( fixLen == 1 ) ? RF_PACKETCONFIG1_PACKETFORMAT_FIXED : RF_PACKETCONFIG1_PACKETFORMAT_VARIABLE ) |
                            ( crcOn << 4 ) );
+            if( fixLen == 1 )
+            {
+                Write( REG_PAYLOADLENGTH, payloadLen );
+            }
         }
         break;
     case MODEM_LORA:
@@ -254,12 +260,13 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
             this->settings.LoRa.Datarate = datarate;
             this->settings.LoRa.Coderate = coderate;
             this->settings.LoRa.FixLen = fixLen;
+            this->settings.LoRa.PayloadLen = payloadLen;
             this->settings.LoRa.CrcOn = crcOn;
-            this->settings.LoRa.FreqHopOn = FreqHopOn;
-            this->settings.LoRa.HopPeriod = HopPeriod;
+            this->settings.LoRa.FreqHopOn = freqHopOn;
+            this->settings.LoRa.HopPeriod = hopPeriod;
             this->settings.LoRa.IqInverted = iqInverted;
             this->settings.LoRa.RxContinuous = rxContinuous;
-
+            
             if( datarate > 12 )
             {
                 datarate = 12;
@@ -305,6 +312,11 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
             Write( REG_LR_PREAMBLEMSB, ( uint8_t )( ( preambleLen >> 8 ) & 0xFF ) );
             Write( REG_LR_PREAMBLELSB, ( uint8_t )( preambleLen & 0xFF ) );
 
+            if( fixLen == 1 )
+            {
+                Write( REG_LR_PAYLOADLENGTH, payloadLen );
+            }
+
             if( this->settings.LoRa.FreqHopOn == true )
             {
                 Write( REG_LR_PLLHOP, ( Read( REG_LR_PLLHOP ) & RFLR_PLLHOP_FASTHOP_MASK ) | RFLR_PLLHOP_FASTHOP_ON );
@@ -337,8 +349,8 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
 void SX1276::SetTxConfig( ModemType modem, int8_t power, uint32_t fdev, 
                         uint32_t bandwidth, uint32_t datarate,
                         uint8_t coderate, uint16_t preambleLen,
-                        bool fixLen, bool crcOn, bool FreqHopOn, 
-                        uint8_t HopPeriod, bool iqInverted, uint32_t timeout )
+                        bool fixLen, bool crcOn, bool freqHopOn, 
+                        uint8_t hopPeriod, bool iqInverted, uint32_t timeout )
 {
     uint8_t paConfig = 0;
     uint8_t paDac = 0;
@@ -432,7 +444,6 @@ void SX1276::SetTxConfig( ModemType modem, int8_t power, uint32_t fdev,
                            RF_PACKETCONFIG1_PACKETFORMAT_MASK ) |
                            ( ( fixLen == 1 ) ? RF_PACKETCONFIG1_PACKETFORMAT_FIXED : RF_PACKETCONFIG1_PACKETFORMAT_VARIABLE ) |
                            ( crcOn << 4 ) );
-        
         }
         break;
     case MODEM_LORA:
@@ -450,8 +461,8 @@ void SX1276::SetTxConfig( ModemType modem, int8_t power, uint32_t fdev,
             this->settings.LoRa.PreambleLen = preambleLen;
             this->settings.LoRa.FixLen = fixLen;
             this->settings.LoRa.CrcOn = crcOn;
-            this->settings.LoRa.FreqHopOn = FreqHopOn;
-            this->settings.LoRa.HopPeriod = HopPeriod;
+            this->settings.LoRa.FreqHopOn = freqHopOn;
+            this->settings.LoRa.HopPeriod = hopPeriod;
             this->settings.LoRa.IqInverted = iqInverted;
             this->settings.LoRa.TxTimeout = timeout;
 
@@ -678,8 +689,8 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
 
 void SX1276::Sleep( void )
 {
-        // Initialize driver timeout timers
-   	txTimeoutTimer.detach(  );
+    // Initialize driver timeout timers
+    txTimeoutTimer.detach(  );
     rxTimeoutTimer.detach( );
     SetOpMode( RF_OPMODE_SLEEP );
 }
@@ -749,10 +760,8 @@ void SX1276::Rx( uint32_t timeout )
                                               //RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
                                               RFLR_IRQFLAGS_CADDETECTED );
                                               
-                // DIO0=RxDone
-                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
-                // DIO2=FhssChangeChannel
-                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO2_MASK ) | RFLR_DIOMAPPING1_DIO2_00 );  
+                // DIO0=RxDone, DIO2=FhssChangeChannel
+                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK & RFLR_DIOMAPPING1_DIO2_MASK  ) | RFLR_DIOMAPPING1_DIO0_00 | RFLR_DIOMAPPING1_DIO2_00 );
             }
             else
             {
@@ -867,7 +876,7 @@ void SX1276::Tx( uint32_t timeout )
     }
 
     this->settings.State = TX;
-	txTimeoutTimer.attach_us( this, &SX1276::OnTimeoutIrq, timeout );
+    txTimeoutTimer.attach_us( this, &SX1276::OnTimeoutIrq, timeout );
     SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
@@ -959,26 +968,26 @@ void SX1276::SetModem( ModemType modem )
 {
     if( this->settings.Modem != modem )
     {
-	    this->settings.Modem = modem;
-	    switch( this->settings.Modem )
-	    {
-	    default:
-	    case MODEM_FSK:
-	        SetOpMode( RF_OPMODE_SLEEP );
-	        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_OFF );
-	    
-	        Write( REG_DIOMAPPING1, 0x00 );
-	        Write( REG_DIOMAPPING2, 0x30 ); // DIO5=ModeReady
-	        break;
-	    case MODEM_LORA:
-	        SetOpMode( RF_OPMODE_SLEEP );
-	        Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_ON );
-			Write( 0x30, 0x00 ); //  IF = 0
-	        Write( REG_LR_DETECTOPTIMIZE, ( Read( REG_LR_DETECTOPTIMIZE ) & 0x7F ) ); // Manual IF
-	        Write( REG_DIOMAPPING1, 0x00 );
-	        Write( REG_DIOMAPPING2, 0x00 );
-	        break;
-	    }
+        this->settings.Modem = modem;
+        switch( this->settings.Modem )
+        {
+        default:
+        case MODEM_FSK:
+            SetOpMode( RF_OPMODE_SLEEP );
+            Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_OFF );
+        
+            Write( REG_DIOMAPPING1, 0x00 );
+            Write( REG_DIOMAPPING2, 0x30 ); // DIO5=ModeReady
+            break;
+        case MODEM_LORA:
+            SetOpMode( RF_OPMODE_SLEEP );
+            Write( REG_OPMODE, ( Read( REG_OPMODE ) & RFLR_OPMODE_LONGRANGEMODE_MASK ) | RFLR_OPMODE_LONGRANGEMODE_ON );
+            Write( 0x30, 0x00 ); //  IF = 0
+            Write( REG_LR_DETECTOPTIMIZE, ( Read( REG_LR_DETECTOPTIMIZE ) & 0x7F ) ); // Manual IF
+            Write( REG_DIOMAPPING1, 0x00 );
+            Write( REG_DIOMAPPING2, 0x00 );
+            break;
+        }
     }
 }
 
@@ -1017,7 +1026,7 @@ void SX1276::OnTimeoutIrq( void )
         }
         break;
     case TX:
-    	this->settings.State = IDLE;
+        this->settings.State = IDLE;
         if( ( txTimeout != NULL ) )
         {
             txTimeout( );
@@ -1331,10 +1340,10 @@ void SX1276::OnDio2Irq( void )
                     // Clear Irq
                     Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
                     
-	                if( ( fhssChangeChannel != NULL ) )
-	                {
-	                    fhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
-	                }
+                    if( ( fhssChangeChannel != NULL ) )
+                    {
+                        fhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
+                    }
                 }    
                 break;
             default:
@@ -1352,10 +1361,10 @@ void SX1276::OnDio2Irq( void )
                     // Clear Irq
                     Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
                     
-	                if( ( fhssChangeChannel != NULL ) )
-	                {
-	                    fhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
-	                }
+                    if( ( fhssChangeChannel != NULL ) )
+                    {
+                        fhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
+                    }
                 }    
                 break;
             default:
@@ -1374,23 +1383,23 @@ void SX1276::OnDio3Irq( void )
     case MODEM_FSK:
         break;
     case MODEM_LORA:
-    	if( ( Read( REG_LR_IRQFLAGS ) & 0x01 ) == 0x01 )
-    	{
-	        // Clear Irq
-    		Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED_MASK | RFLR_IRQFLAGS_CADDONE);
-	        if( ( cadDone != NULL ) )
-	        {
-	            cadDone( true );
-	        }
+        if( ( Read( REG_LR_IRQFLAGS ) & 0x01 ) == 0x01 )
+        {
+            // Clear Irq
+            Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED_MASK | RFLR_IRQFLAGS_CADDONE);
+            if( ( cadDone != NULL ) )
+            {
+                cadDone( true );
+            }
         }
         else
-        {		
-	        // Clear Irq
-	        Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
-	        if( ( cadDone != NULL ) )
-	        {
-	            cadDone( false );
-	        }
+        {        
+            // Clear Irq
+            Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
+            if( ( cadDone != NULL ) )
+            {
+                cadDone( false );
+            }
         }
         break;
     default:

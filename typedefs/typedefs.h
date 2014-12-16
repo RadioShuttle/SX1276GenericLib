@@ -45,7 +45,7 @@ typedef struct
  */
 typedef struct
 {
-    ModemType	Modem;
+    ModemType   Modem;
     uint8_t     Addr;
     uint8_t     Value;
 }RadioRegisters_t;
