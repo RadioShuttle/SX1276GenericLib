@@ -233,8 +233,8 @@ void SX1276::SetRxConfig( ModemType modem, uint32_t bandwidth,
             Write( REG_RXBW, GetFskBandwidthRegValue( bandwidth ) );
             Write( REG_AFCBW, GetFskBandwidthRegValue( bandwidthAfc ) );
 
-            Write( REG_LR_PREAMBLEMSB, ( uint8_t )( ( preambleLen >> 8 ) & 0xFF ) );
-            Write( REG_LR_PREAMBLELSB, ( uint8_t )( preambleLen & 0xFF ) );
+            Write( REG_PREAMBLEMSB, ( uint8_t )( ( preambleLen >> 8 ) & 0xFF ) );
+            Write( REG_PREAMBLELSB, ( uint8_t )( preambleLen & 0xFF ) );
 
             Write( REG_PACKETCONFIG1,
                          ( Read( REG_PACKETCONFIG1 ) & 
