@@ -25,7 +25,7 @@ const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] =
     { MODEM_FSK , REG_SYNCVALUE1         , 0xC1 },
     { MODEM_FSK , REG_SYNCVALUE2         , 0x94 },
     { MODEM_FSK , REG_SYNCVALUE3         , 0xC1 },
-    { MODEM_FSK , REG_PACKETCONFIG1      , 0x98 },
+    { MODEM_FSK , REG_PACKETCONFIG1      , 0xD8 },
     { MODEM_FSK , REG_FIFOTHRESH         , 0x8F },
     { MODEM_FSK , REG_IMAGECAL           , 0x02 },
     { MODEM_FSK , REG_DIOMAPPING1        , 0x00 },
