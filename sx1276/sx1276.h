@@ -20,6 +20,14 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "./registers/sx1276Regs-LoRa.h"
 #include "./typedefs/typedefs.h"
 
+/*!
+ * Radio wakeup time from SLEEP mode
+ */
+#define RADIO_WAKEUP_TIME                           1000 // [us]
+
+/*!
+ * SX1276 definitions
+ */
 #define XTAL_FREQ                                   32000000
 #define FREQ_STEP                                   61.03515625
 

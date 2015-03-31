@@ -37,7 +37,7 @@ const FskBandwidth_t SX1276::FskBandwidths[] =
     { 166700, 0x11 },
     { 200000, 0x09 },
     { 250000, 0x01 },
-    {      0, 0x00 }, // Invalid Badwidth
+    { 300000, 0x00 }, // Invalid Badwidth
 };
 
 
