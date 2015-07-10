@@ -1050,42 +1050,45 @@ void SX1276::OnDio0Irq( void )
             switch( this->settings.Modem )
             {
             case MODEM_FSK:
-                irqFlags = Read( REG_IRQFLAGS2 );
-                if( ( irqFlags & RF_IRQFLAGS2_CRCOK ) != RF_IRQFLAGS2_CRCOK )
+                if( this->settings.Fsk.CrcOn == true )
                 {
-                    // Clear Irqs
-                    Write( REG_IRQFLAGS1, RF_IRQFLAGS1_RSSI | 
-                                                RF_IRQFLAGS1_PREAMBLEDETECT |
-                                                RF_IRQFLAGS1_SYNCADDRESSMATCH );
-                    Write( REG_IRQFLAGS2, RF_IRQFLAGS2_FIFOOVERRUN );
-
-                    if( this->settings.Fsk.RxContinuous == false )
+                    irqFlags = Read( REG_IRQFLAGS2 );
+                    if( ( irqFlags & RF_IRQFLAGS2_CRCOK ) != RF_IRQFLAGS2_CRCOK )
                     {
-                        this->settings.State = IDLE;
-                        rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, (  8.0 * ( this->settings.Fsk.PreambleLen +
-                                                         ( ( Read( REG_SYNCCONFIG ) &
-                                                            ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
-                                                         1.0 ) + 1.0 ) /
-                                                        ( double )this->settings.Fsk.Datarate ) * 1e6 ) ;
+                        // Clear Irqs
+                        Write( REG_IRQFLAGS1, RF_IRQFLAGS1_RSSI | 
+                                                    RF_IRQFLAGS1_PREAMBLEDETECT |
+                                                    RF_IRQFLAGS1_SYNCADDRESSMATCH );
+                        Write( REG_IRQFLAGS2, RF_IRQFLAGS2_FIFOOVERRUN );
+    
+                        if( this->settings.Fsk.RxContinuous == false )
+                        {
+                            this->settings.State = IDLE;
+                            rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, (  8.0 * ( this->settings.Fsk.PreambleLen +
+                                                             ( ( Read( REG_SYNCCONFIG ) &
+                                                                ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
+                                                             1.0 ) + 1.0 ) /
+                                                            ( double )this->settings.Fsk.Datarate ) * 1e6 ) ;
+                        }
+                        else
+                        {
+                            // Continuous mode restart Rx chain
+                            Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
+                        }
+                        rxTimeoutTimer.detach( );
+    
+                        if( ( rxError != NULL ) )
+                        {
+                            rxError( ); 
+                        }
+                        this->settings.FskPacketHandler.PreambleDetected = false;
+                        this->settings.FskPacketHandler.SyncWordDetected = false;
+                        this->settings.FskPacketHandler.NbBytes = 0;
+                        this->settings.FskPacketHandler.Size = 0;
+                        break;
                     }
-                    else
-                    {
-                        // Continuous mode restart Rx chain
-                        Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                    }
-                    rxTimeoutTimer.detach( );
-
-                    if( ( rxError != NULL ) )
-                    {
-                        rxError( ); 
-                    }
-                    this->settings.FskPacketHandler.PreambleDetected = false;
-                    this->settings.FskPacketHandler.SyncWordDetected = false;
-                    this->settings.FskPacketHandler.NbBytes = 0;
-                    this->settings.FskPacketHandler.Size = 0;
-                    break;
                 }
-
+                
                 // Read received packet size
                 if( ( this->settings.FskPacketHandler.Size == 0 ) && ( this->settings.FskPacketHandler.NbBytes == 0 ) )
                 {
