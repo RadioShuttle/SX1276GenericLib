@@ -101,7 +101,7 @@ public:
      *
      * @param status Radio status.[RF_IDLE, RF_RX_RUNNING, RF_TX_RUNNING]
      */
-    virtual RadioState GetState( void ) = 0; 
+    virtual RadioState GetStatus( void ) = 0; 
 
     /*!
      * \brief Configures the radio with the given modem

@@ -126,7 +126,7 @@ public:
      *
      * @param status Radio status. [IDLE, RX_RUNNING, TX_RUNNING]
      */
-    virtual RadioState GetState( void ); 
+    virtual RadioState GetStatus( void ); 
     
     /*!
      * @brief Configures the SX1276 with the given modem

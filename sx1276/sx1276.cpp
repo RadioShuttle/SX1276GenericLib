@@ -109,7 +109,7 @@ void SX1276::RxChainCalibration( void )
     SetChannel( initialFreq );
 }
 
-RadioState SX1276::GetState( void )
+RadioState SX1276::GetStatus( void )
 {
     return this->settings.State;
 }
