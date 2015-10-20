@@ -992,6 +992,24 @@ void SX1276::SetModem( ModemType modem )
     }
 }
 
+void SX1276::SetMaxPayloadLength( ModemType modem, uint8_t max )
+{
+    this->SetModem( modem );
+
+    switch( modem )
+    {
+    case MODEM_FSK:
+        if( this->settings.Fsk.FixLen == false )
+        {
+            this->Write( REG_PAYLOADLENGTH, max );
+        }
+        break;
+    case MODEM_LORA:
+        this->Write( REG_LR_PAYLOADMAXLENGTH, max );
+        break;
+    }
+}
+
 void SX1276::OnTimeoutIrq( void )
 {
     switch( this->settings.State )
@@ -1040,7 +1058,7 @@ void SX1276::OnTimeoutIrq( void )
 
 void SX1276::OnDio0Irq( void )
 {
-    __IO uint8_t irqFlags = 0;
+    volatile uint8_t irqFlags = 0;
   
     switch( this->settings.State )
     {                

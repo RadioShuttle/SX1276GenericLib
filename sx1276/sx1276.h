@@ -354,6 +354,14 @@ public:
      */
     virtual void Reset( void ) = 0;
     
+    /*!
+     * @brief Sets the maximum payload length.
+     *
+     * @param [IN] modem      Radio modem to be used [0: FSK, 1: LoRa]
+     * @param [IN] max        Maximum payload length in bytes
+     */
+    virtual void SetMaxPayloadLength( ModemType modem, uint8_t max );
+    
     //-------------------------------------------------------------------------
     //                        Board relative functions
     //-------------------------------------------------------------------------

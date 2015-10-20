@@ -332,6 +332,14 @@ public:
      * @param [IN] size Number of bytes to be read from the FIFO
      */
     virtual void ReadFifo( uint8_t *buffer, uint8_t size ) = 0;
+    
+    /*!
+     * @brief Sets the maximum payload length.
+     *
+     * @param [IN] modem      Radio modem to be used [0: FSK, 1: LoRa]
+     * @param [IN] max        Maximum payload length in bytes
+     */
+    virtual void SetMaxPayloadLength( ModemType modem, uint8_t max ) = 0;
 };
 
 #endif // __RADIO_H__
