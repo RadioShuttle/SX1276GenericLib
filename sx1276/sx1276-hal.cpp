@@ -4,7 +4,7 @@
  \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
-    ( C )2014 Semtech
+    (C) 2014 Semtech
 
 Description: -
 
@@ -14,24 +14,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 #include "sx1276-hal.h"
 
-const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = 
-{                                                 
-    { MODEM_FSK , REG_LNA                , 0x23 },
-    { MODEM_FSK , REG_RXCONFIG           , 0x1E },
-    { MODEM_FSK , REG_RSSICONFIG         , 0xD2 },
-    { MODEM_FSK , REG_PREAMBLEDETECT     , 0xAA },
-    { MODEM_FSK , REG_OSC                , 0x07 },
-    { MODEM_FSK , REG_SYNCCONFIG         , 0x12 },
-    { MODEM_FSK , REG_SYNCVALUE1         , 0xC1 },
-    { MODEM_FSK , REG_SYNCVALUE2         , 0x94 },
-    { MODEM_FSK , REG_SYNCVALUE3         , 0xC1 },
-    { MODEM_FSK , REG_PACKETCONFIG1      , 0xD8 },
-    { MODEM_FSK , REG_FIFOTHRESH         , 0x8F },
-    { MODEM_FSK , REG_IMAGECAL           , 0x02 },
-    { MODEM_FSK , REG_DIOMAPPING1        , 0x00 },
-    { MODEM_FSK , REG_DIOMAPPING2        , 0x30 },
-    { MODEM_LORA, REG_LR_PAYLOADMAXLENGTH, 0x40 },  
-};
+const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALUE;
 
 SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
@@ -130,7 +113,8 @@ void SX1276MB1xAS::IoInit( void )
     SpiInit( );
 }
 
-void SX1276MB1xAS::RadioRegistersInit( ){
+void SX1276MB1xAS::RadioRegistersInit( )
+{
     uint8_t i = 0;
     for( i = 0; i < sizeof( RadioRegsInit ) / sizeof( RadioRegisters_t ); i++ )
     {
@@ -156,13 +140,13 @@ void SX1276MB1xAS::SpiInit( void )
 
 void SX1276MB1xAS::IoIrqInit( DioIrqHandler *irqHandlers )
 {
-    #if( defined ( TARGET_NUCLEO_L152RE ) ||  defined ( TARGET_LPC11U6X ) )
-        dio0.mode(PullDown);
-        dio1.mode(PullDown);   
-        dio2.mode(PullDown);
-        dio3.mode(PullDown); 
-        dio4.mode(PullDown); 
-    #endif
+#if( defined ( TARGET_NUCLEO_L152RE ) ||  defined ( TARGET_LPC11U6X ) )
+    dio0.mode(PullDown);
+    dio1.mode(PullDown);   
+    dio2.mode(PullDown);
+    dio3.mode(PullDown); 
+    dio4.mode(PullDown); 
+#endif
     dio0.rise( this, static_cast< TriggerMB1xAS > ( irqHandlers[0] ) );
     dio1.rise( this, static_cast< TriggerMB1xAS > ( irqHandlers[1] ) );
     dio2.rise( this, static_cast< TriggerMB1xAS > ( irqHandlers[2] ) );

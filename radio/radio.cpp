@@ -4,7 +4,7 @@
  \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
-    ( C )2014 Semtech
+    (C) 2014 Semtech
 
 Description: Interface for the radios, contains the main functions that a radio needs, and 5 callback functions
 

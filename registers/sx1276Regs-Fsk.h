@@ -4,7 +4,7 @@
  \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
-    ( C )2014 Semtech
+    (C) 2014 Semtech
 
 Description: SX1276 FSK modem registers and bits definitions
 
@@ -145,7 +145,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_OPMODE_RECEIVER                          0x05
 
 /*!
- * RegBitRate ( bits/sec )
+ * RegBitRate (bits/sec)
  */
 #define RF_BITRATEMSB_1200_BPS                      0x68
 #define RF_BITRATELSB_1200_BPS                      0x2B
@@ -187,7 +187,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_BITRATELSB_32768_BPS                     0xD1
 
 /*!
- * RegFdev ( Hz )
+ * RegFdev (Hz)
  */
 #define RF_FDEVMSB_2000_HZ                          0x00
 #define RF_FDEVLSB_2000_HZ                          0x21
@@ -253,7 +253,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_FDEVLSB_200000_HZ                        0xCD
 
 /*!
- * RegFrf ( MHz )
+ * RegFrf (MHz)
  */
 #define RF_FRFMSB_863_MHZ                           0xD7
 #define RF_FRFMID_863_MHZ                           0xC0
@@ -533,7 +533,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_RSSITHRESH_THRESHOLD                     0xFF  // Default
 
 /*!
- * RegRssiValue ( Read Only )
+ * RegRssiValue (Read Only)
  */
 
 /*!
@@ -636,19 +636,19 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_AFCFEI_AFCAUTOCLEAR_OFF                  0x00  // Default
 
 /*!
- * RegAfcMsb ( Read Only )
+ * RegAfcMsb (Read Only)
  */
  
 /*!
- * RegAfcLsb ( Read Only )
+ * RegAfcLsb (Read Only)
  */
 
 /*!
- * RegFeiMsb ( Read Only )
+ * RegFeiMsb (Read Only)
  */
 
 /*!
- * RegFeiLsb ( Read Only )
+ * RegFeiLsb (Read Only)
  */
 
 /*!
@@ -962,7 +962,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_IMAGECAL_TEMPMONITOR_OFF                 0x01
 
 /*!
- * RegTemp ( Read Only )
+ * RegTemp (Read Only)
  */
 
 /*!
@@ -1067,7 +1067,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_DIOMAPPING2_MAP_RSSI                     0x00  // Default
 
 /*!
- * RegVersion ( Read Only )
+ * RegVersion (Read Only)
  */
 
 /*!
@@ -1126,4 +1126,3 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_PLL_BANDWIDTH_300                        0xC0  // Default
 
 #endif // __SX1276_REGS_FSK_H__
-

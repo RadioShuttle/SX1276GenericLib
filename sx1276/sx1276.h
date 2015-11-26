@@ -4,7 +4,7 @@
  \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
-    ( C )2014 Semtech
+    (C) 2014 Semtech
 
 Description: Actual implementation of a SX1276 radio, inherits Radio
 
@@ -32,10 +32,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define FREQ_STEP                                   61.03515625
 
 #define RX_BUFFER_SIZE                              256
-
-#define DEFAULT_TIMEOUT                             200 //usec
-#define RSSI_OFFSET                                 -139.0
-
 
 /*!
  * Constant values need to compute the RSSI value
@@ -137,7 +133,7 @@ public:
      *
      * @param [IN] modem Modem to be used [0: FSK, 1: LoRa] 
      */
-    virtual void SetModem( ModemType modem );
+    virtual void SetModem( RadioModems_t modem );
 
     /*!
      * @brief Sets the channel frequency
@@ -155,7 +151,7 @@ public:
      *
      * @retval isFree         [true: Channel is free, false: Channel is not free]
      */
-    virtual bool IsChannelFree( ModemType modem, uint32_t freq, int8_t rssiThresh );
+    virtual bool IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh );
     
     /*!
      * @brief Generates a 32 bits random value based on the RSSI readings
@@ -204,7 +200,7 @@ public:
      * @param [IN] rxContinuous Sets the reception in continuous mode
      *                          [false: single mode, true: continuous mode]
      */
-    virtual void SetRxConfig ( ModemType modem, uint32_t bandwidth,
+    virtual void SetRxConfig ( RadioModems_t modem, uint32_t bandwidth,
                                uint32_t datarate, uint8_t coderate,
                                uint32_t bandwidthAfc, uint16_t preambleLen,
                                uint16_t symbTimeout, bool fixLen,
@@ -241,7 +237,7 @@ public:
      *                          LoRa: [0: not inverted, 1: inverted]
      * @param [IN] timeout      Transmission timeout [us]
      */
-    virtual void SetTxConfig( ModemType modem, int8_t power, uint32_t fdev,
+    virtual void SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
                               uint32_t bandwidth, uint32_t datarate,
                               uint8_t coderate, uint16_t preambleLen,
                               bool fixLen, bool crcOn, bool freqHopOn,
@@ -257,7 +253,7 @@ public:
      *
      * @retval airTime        Computed airTime for the given packet payload length
      */
-    virtual double TimeOnAir ( ModemType modem, uint8_t pktLen );
+    virtual double TimeOnAir ( RadioModems_t modem, uint8_t pktLen );
     
     /*!
      * @brief Sends the buffer of size. Prepares the packet to be sent and sets
@@ -302,7 +298,7 @@ public:
      *
      * @retval rssiValue Current RSSI value in [dBm]
      */
-    virtual int16_t GetRssi ( ModemType modem );
+    virtual int16_t GetRssi ( RadioModems_t modem );
     
     /*!
      * @brief Writes the radio register at the specified address
@@ -364,7 +360,7 @@ public:
      * @param [IN] modem      Radio modem to be used [0: FSK, 1: LoRa]
      * @param [IN] max        Maximum payload length in bytes
      */
-    virtual void SetMaxPayloadLength( ModemType modem, uint8_t max );
+    virtual void SetMaxPayloadLength( RadioModems_t modem, uint8_t max );
     
     //-------------------------------------------------------------------------
     //                        Board relative functions
@@ -500,4 +496,4 @@ protected:
     static uint8_t GetFskBandwidthRegValue( uint32_t bandwidth );
 };
 
-#endif //__SX1276_H__
+#endif // __SX1276_H__

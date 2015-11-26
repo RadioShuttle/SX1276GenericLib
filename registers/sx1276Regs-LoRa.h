@@ -4,7 +4,7 @@
  \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
-    ( C )2014 Semtech
+    (C) 2014 Semtech
 
 Description: SX1276 LoRa modem registers and bits definitions
 
@@ -63,10 +63,15 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define REG_LR_FEIMID                               0x29
 #define REG_LR_FEILSB                               0x2A
 #define REG_LR_RSSIWIDEBAND                         0x2C
+#define REG_LR_TEST2F                               0x2F
+#define REG_LR_TEST30                               0x30
 #define REG_LR_DETECTOPTIMIZE                       0x31
 #define REG_LR_INVERTIQ                             0x33
+#define REG_LR_TEST36                               0x36
 #define REG_LR_DETECTIONTHRESHOLD                   0x37
 #define REG_LR_SYNCWORD                             0x39
+#define REG_LR_TEST3A                               0x3A
+#define REG_LR_INVERTIQ2                            0x3B
 
 // end of documented register in datasheet
 // I/O settings
@@ -123,7 +128,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_OPMODE_CAD                             0x07 
 
 /*!
- * RegFrf ( MHz )
+ * RegFrf (MHz)
  */
 #define RFLR_FRFMSB_434_MHZ                         0x6C // Default
 #define RFLR_FRFMID_434_MHZ                         0x80 // Default
@@ -236,7 +241,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_FIFORXBASEADDR                         0x00 // Default
 
 /*!
- * RegFifoRxCurrentAddr ( Read Only )
+ * RegFifoRxCurrentAddr (Read Only)
  */
 
 /*!
@@ -264,50 +269,45 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_IRQFLAGS_CADDETECTED                   0x01 
 
 /*!
- * RegFifoRxNbBytes ( Read Only )
+ * RegFifoRxNbBytes (Read Only)
  */
- 
+
 /*!
- * RegRxHeaderCntValueMsb ( Read Only )
+ * RegRxHeaderCntValueMsb (Read Only)
  */
- 
+
 /*!
- * RegRxHeaderCntValueLsb ( Read Only )
+ * RegRxHeaderCntValueLsb (Read Only)
  */
- 
- 
+
 /*!
- * RegRxPacketCntValueMsb ( Read Only )
+ * RegRxPacketCntValueMsb (Read Only)
  */
- 
- 
+
 /*!
- * RegRxPacketCntValueLsb ( Read Only )
+ * RegRxPacketCntValueLsb (Read Only)
  */
- 
- 
+
 /*!
- * RegModemStat ( Read Only )
+ * RegModemStat (Read Only)
  */
 #define RFLR_MODEMSTAT_RX_CR_MASK                   0x1F 
 #define RFLR_MODEMSTAT_MODEM_STATUS_MASK            0xE0 
  
 /*!
- * RegPktSnrValue ( Read Only )
- */
-
- 
- /*!
- * RegPktRssiValue ( Read Only )
- */
- 
- 
-/*!
- * RegRssiValue ( Read Only )
+ * RegPktSnrValue (Read Only)
  */
 
 /*!
- * RegHopChannel ( Read Only )
+ * RegPktRssiValue (Read Only)
+ */
+
+/*!
+ * RegRssiValue (Read Only)
+ */
+
+/*!
+ * RegHopChannel (Read Only)
  */
 #define RFLR_HOPCHANNEL_PLL_LOCK_TIMEOUT_MASK       0x7F 
 #define RFLR_HOPCHANNEL_PLL_LOCK_FAIL               0x80 
@@ -318,7 +318,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_HOPCHANNEL_CRCONPAYLOAD_OFF            0x00 // Default
 
 #define RFLR_HOPCHANNEL_CHANNEL_MASK                0x3F 
- 
+
 /*!
  * RegModemConfig1
  */
@@ -365,7 +365,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_MODEMCONFIG2_RXPAYLOADCRC_OFF          0x00 // Default
  
 #define RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK       0xFC 
-#define RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB            0x00 // Default                                      
+#define RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB            0x00 // Default
 
 /*!
  * RegSymbTimeoutLsb
@@ -398,7 +398,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_HOPPERIOD_FREQFOPPINGPERIOD            0x00 // Default
 
 /*!
- * RegFifoRxByteAddr ( Read Only )
+ * RegFifoRxByteAddr (Read Only)
  */
 
 /*!
@@ -413,19 +413,19 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_MODEMCONFIG3_AGCAUTO_OFF               0x00 
 
 /*!
- * RegFeiMsb ( Read Only )
+ * RegFeiMsb (Read Only)
  */
 
 /*!
- * RegFeiMid ( Read Only )
+ * RegFeiMid (Read Only)
  */
 
 /*!
- * RegFeiLsb ( Read Only )
+ * RegFeiLsb (Read Only)
  */
 
 /*!
- * RegRssiWideband ( Read Only )
+ * RegRssiWideband (Read Only)
  */
 
 /*!
@@ -450,6 +450,12 @@ Maintainer: Miguel Luis and Gregory Cristian
  */
 #define RFLR_DETECTIONTHRESH_SF7_TO_SF12            0x0A // Default
 #define RFLR_DETECTIONTHRESH_SF6                    0x0C
+
+/*!
+ * RegInvertIQ2
+ */
+#define RFLR_INVERTIQ2_ON                           0x19
+#define RFLR_INVERTIQ2_OFF                          0x1D
 
 /*!
  * RegDioMapping1
@@ -498,7 +504,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RFLR_DIOMAPPING2_MAP_RSSI                   0x00  // Default
 
 /*!
- * RegVersion ( Read Only )
+ * RegVersion (Read Only)
  */
 
 /*!
@@ -557,4 +563,3 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RF_PLL_BANDWIDTH_300                        0xC0  // Default
 
 #endif // __SX1276_REGS_LORA_H__
-
