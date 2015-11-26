@@ -16,46 +16,35 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define __ENUMS_H__
 
 /*!
- *    State of the radio:
- *    [IDLE,
- *     RX_RUNNING, RX_TIMEOUT, RX_ERROR,
- *     TX_RUNNING, TX_TIMEOUT,
-       CAD]
+ * Radio driver internal state machine states definition
  */
-enum RadioState
+typedef enum RadioState
 {
-    LOWPOWER = 0,
-    IDLE,
-    
-    RX,
-    RX_TIMEOUT,
-    RX_ERROR,
-    
-    TX,
-    TX_TIMEOUT,
-    
-    CAD,
-    CAD_DONE
-};
+    RF_IDLE = 0,
+    RF_RX_RUNNING,
+    RF_TX_RUNNING,
+    RF_CAD,
+}RadioState_t;
 
 /*!
  *    Type of the modem. [LORA / FSK]
  */
-enum ModemType
+typedef enum ModemType
 {
     MODEM_FSK = 0,
     MODEM_LORA
-};
+}RadioModems_t;
 
 /*!
- *    Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
+ * Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
  */
-enum BoardType
+typedef enum BoardType
 {
     SX1276MB1MAS = 0,
     SX1276MB1LAS,
     UNKNOWN
-};
+}BoardType_t;
+
 /*!
  * Radio FSK modem parameters
  */

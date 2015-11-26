@@ -41,11 +41,10 @@ const FskBandwidth_t SX1276::FskBandwidths[] =
 };
 
 
-SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-                void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool channelActivityDetected ),
+SX1276::SX1276( RadioEvents_t *events,
                 PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                 PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 )
-            :   Radio( txDone, txTimeout, rxDone, rxTimeout, rxError, fhssChangeChannel, cadDone ),
+            :   Radio( events ),
                 spi( mosi, miso, sclk ),
                 nss( nss ),
                 reset( reset ),
@@ -57,6 +56,8 @@ SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) (
     this->rxBuffer = new uint8_t[RX_BUFFER_SIZE];
     previousOpMode = RF_OPMODE_STANDBY;
     
+    this->RadioEvents = events;
+    
     this->dioIrq = new DioIrqHandler[6];
 
     this->dioIrq[0] = &SX1276::OnDio0Irq;
@@ -66,13 +67,18 @@ SX1276::SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) (
     this->dioIrq[4] = &SX1276::OnDio4Irq;
     this->dioIrq[5] = NULL;
     
-    this->settings.State = IDLE;
+    this->settings.State = RF_IDLE;
 }
 
 SX1276::~SX1276( )
 {
     delete this->rxBuffer;
     delete this->dioIrq;
+}
+
+void SX1276::Init( RadioEvents_t *events )
+{
+    this->RadioEvents = events;
 }
 
 void SX1276::RxChainCalibration( void )
@@ -619,7 +625,7 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
 {
     uint32_t txTimeout = 0;
 
-    this->settings.State = IDLE;
+    this->settings.State = RF_IDLE;
 
     switch( this->settings.Modem )
     {
@@ -787,7 +793,7 @@ void SX1276::Rx( uint32_t timeout )
 
     memset( rxBuffer, 0, ( size_t )RX_BUFFER_SIZE );
 
-    this->settings.State = RX;
+    this->settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
     {
         rxTimeoutTimer.attach_us( this, &SX1276::OnTimeoutIrq, timeout );
@@ -876,7 +882,7 @@ void SX1276::Tx( uint32_t timeout )
         break;
     }
 
-    this->settings.State = TX;
+    this->settings.State = RF_TX_RUNNING;
     txTimeoutTimer.attach_us( this, &SX1276::OnTimeoutIrq, timeout );
     SetOpMode( RF_OPMODE_TRANSMITTER );
 }
@@ -905,7 +911,7 @@ void SX1276::StartCad( void )
             // DIO3=CADDone
             Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
             
-            this->settings.State = CAD;
+            this->settings.State = RF_CAD;
             SetOpMode( RFLR_OPMODE_CAD );
         }
         break;
@@ -1014,7 +1020,7 @@ void SX1276::OnTimeoutIrq( void )
 {
     switch( this->settings.State )
     {
-    case RX:
+    case RF_RX_RUNNING:
         if( this->settings.Modem == MODEM_FSK )
         {
             this->settings.FskPacketHandler.PreambleDetected = false;
@@ -1035,20 +1041,20 @@ void SX1276::OnTimeoutIrq( void )
             }
             else
             {
-                this->settings.State = IDLE;
+                this->settings.State = RF_IDLE;
                 rxTimeoutSyncWord.detach( );
             }
         }
-        if( ( rxTimeout != NULL ) )
+        if( ( this->RadioEvents->RxTimeout != NULL ) )
         {
-            rxTimeout( );
+            this->RadioEvents->RxTimeout( );
         }
         break;
-    case TX:
-        this->settings.State = IDLE;
-        if( ( txTimeout != NULL ) )
+    case RF_TX_RUNNING:
+        this->settings.State = RF_IDLE;
+        if( ( this->RadioEvents->TxTimeout != NULL ) )
         {
-            txTimeout( );
+            this->RadioEvents->TxTimeout( );
         }
         break;
     default:
@@ -1062,7 +1068,7 @@ void SX1276::OnDio0Irq( void )
   
     switch( this->settings.State )
     {                
-        case RX:
+        case RF_RX_RUNNING:
             //TimerStop( &RxTimeoutTimer );
             // RxDone interrupt
             switch( this->settings.Modem )
@@ -1081,7 +1087,7 @@ void SX1276::OnDio0Irq( void )
     
                         if( this->settings.Fsk.RxContinuous == false )
                         {
-                            this->settings.State = IDLE;
+                            this->settings.State = RF_IDLE;
                             rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, (  8.0 * ( this->settings.Fsk.PreambleLen +
                                                              ( ( Read( REG_SYNCCONFIG ) &
                                                                 ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
@@ -1095,9 +1101,9 @@ void SX1276::OnDio0Irq( void )
                         }
                         rxTimeoutTimer.detach( );
     
-                        if( ( rxError != NULL ) )
+                        if( ( this->RadioEvents->RxError != NULL ) )
                         {
-                            rxError( ); 
+                            this->RadioEvents->RxError( ); 
                         }
                         this->settings.FskPacketHandler.PreambleDetected = false;
                         this->settings.FskPacketHandler.SyncWordDetected = false;
@@ -1129,7 +1135,7 @@ void SX1276::OnDio0Irq( void )
 
                 if( this->settings.Fsk.RxContinuous == false )
                 {
-                    this->settings.State = IDLE;
+                    this->settings.State = RF_IDLE;
                     rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, ( 8.0 * ( this->settings.Fsk.PreambleLen +
                                                          ( ( Read( REG_SYNCCONFIG ) &
                                                             ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
@@ -1143,9 +1149,9 @@ void SX1276::OnDio0Irq( void )
                 }
                 rxTimeoutTimer.detach( );
 
-                if( (rxDone != NULL ) )
+                if( ( this->RadioEvents->RxDone != NULL ) )
                 {
-                    rxDone( rxBuffer, this->settings.FskPacketHandler.Size, this->settings.FskPacketHandler.RssiValue, 0 ); 
+                    this->RadioEvents->RxDone( rxBuffer, this->settings.FskPacketHandler.Size, this->settings.FskPacketHandler.RssiValue, 0 ); 
                 } 
                 this->settings.FskPacketHandler.PreambleDetected = false;
                 this->settings.FskPacketHandler.SyncWordDetected = false;
@@ -1167,13 +1173,13 @@ void SX1276::OnDio0Irq( void )
 
                         if( this->settings.LoRa.RxContinuous == false )
                         {
-                            this->settings.State = IDLE;
+                            this->settings.State = RF_IDLE;
                         }
                         rxTimeoutTimer.detach( );
 
-                        if( ( rxError != NULL ) )
+                        if( ( this->RadioEvents->RxError != NULL ) )
                         {
-                            rxError( ); 
+                            this->RadioEvents->RxError( ); 
                         }
                         break;
                     }
@@ -1222,13 +1228,13 @@ void SX1276::OnDio0Irq( void )
                 
                     if( this->settings.LoRa.RxContinuous == false )
                     {
-                        this->settings.State = IDLE;
+                        this->settings.State = RF_IDLE;
                     }
                     rxTimeoutTimer.detach( );
 
-                    if( ( rxDone != NULL ) )
+                    if( ( this->RadioEvents->RxDone != NULL ) )
                     {
-                        rxDone( rxBuffer, this->settings.LoRaPacketHandler.Size, this->settings.LoRaPacketHandler.RssiValue, this->settings.LoRaPacketHandler.SnrValue );
+                        this->RadioEvents->RxDone( rxBuffer, this->settings.LoRaPacketHandler.Size, this->settings.LoRaPacketHandler.RssiValue, this->settings.LoRaPacketHandler.SnrValue );
                     }
                 }
                 break;
@@ -1236,7 +1242,7 @@ void SX1276::OnDio0Irq( void )
                 break;
             }
             break;
-        case TX:
+        case RF_TX_RUNNING:
             txTimeoutTimer.detach(  );
             // TxDone interrupt
             switch( this->settings.Modem )
@@ -1247,10 +1253,10 @@ void SX1276::OnDio0Irq( void )
                 // Intentional fall through
             case MODEM_FSK:
             default:
-                this->settings.State = IDLE;
-                if( ( txDone != NULL ) )
+                this->settings.State = RF_IDLE;
+                if( ( this->RadioEvents->TxDone != NULL ) )
                 {
-                    txDone( ); 
+                    this->RadioEvents->TxDone( ); 
                 } 
                 break;
             }
@@ -1264,7 +1270,7 @@ void SX1276::OnDio1Irq( void )
 {
     switch( this->settings.State )
     {                
-        case RX:
+        case RF_RX_RUNNING:
             switch( this->settings.Modem )
             {
             case MODEM_FSK:
@@ -1296,17 +1302,17 @@ void SX1276::OnDio1Irq( void )
             case MODEM_LORA:
                 // Sync time out
                 rxTimeoutTimer.detach( );
-                this->settings.State = IDLE;
-                if( ( rxTimeout != NULL ) )
+                this->settings.State = RF_IDLE;
+                if( ( this->RadioEvents->RxTimeout != NULL ) )
                 {
-                    rxTimeout( );
+                    this->RadioEvents->RxTimeout( );
                 }
                 break;
             default:
                 break;
             }
             break;
-        case TX:
+        case RF_TX_RUNNING:
             switch( this->settings.Modem )
             {
             case MODEM_FSK:
@@ -1338,7 +1344,7 @@ void SX1276::OnDio2Irq( void )
 {
     switch( this->settings.State )
     {                
-        case RX:
+        case RF_RX_RUNNING:
             switch( this->settings.Modem )
             {
             case MODEM_FSK:
@@ -1362,9 +1368,9 @@ void SX1276::OnDio2Irq( void )
                     // Clear Irq
                     Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
                     
-                    if( ( fhssChangeChannel != NULL ) )
+                    if( ( this->RadioEvents->FhssChangeChannel != NULL ) )
                     {
-                        fhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
+                        this->RadioEvents->FhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
                     }
                 }    
                 break;
@@ -1372,7 +1378,7 @@ void SX1276::OnDio2Irq( void )
                 break;
             }
             break;
-        case TX:
+        case RF_TX_RUNNING:
             switch( this->settings.Modem )
             {
             case MODEM_FSK:
@@ -1383,9 +1389,9 @@ void SX1276::OnDio2Irq( void )
                     // Clear Irq
                     Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL );
                     
-                    if( ( fhssChangeChannel != NULL ) )
+                    if( ( this->RadioEvents->FhssChangeChannel != NULL ) )
                     {
-                        fhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
+                        this->RadioEvents->FhssChangeChannel( ( Read( REG_LR_HOPCHANNEL ) & RFLR_HOPCHANNEL_CHANNEL_MASK ) );
                     }
                 }    
                 break;
@@ -1409,18 +1415,18 @@ void SX1276::OnDio3Irq( void )
         {
             // Clear Irq
             Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED_MASK | RFLR_IRQFLAGS_CADDONE);
-            if( ( cadDone != NULL ) )
+            if( ( this->RadioEvents->CadDone != NULL ) )
             {
-                cadDone( true );
+                this->RadioEvents->CadDone( true );
             }
         }
         else
         {        
             // Clear Irq
             Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
-            if( ( cadDone != NULL ) )
+            if( ( this->RadioEvents->CadDone != NULL ) )
             {
-                cadDone( false );
+                this->RadioEvents->CadDone( false );
             }
         }
         break;

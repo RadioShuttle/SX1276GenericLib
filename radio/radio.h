@@ -20,26 +20,18 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "./enums/enums.h"
 
 /*!
- *    Interface for the radios, contains the main functions that a radio needs, and 5 callback functions
+ * @brief Radio driver callback functions
  */
-class Radio
+typedef struct
 {
-protected:
-
-    //-------------------------------------------------------------------------
-    //                        Callback functions pointers
-    //-------------------------------------------------------------------------
-    
     /*!
      * @brief  Tx Done callback prototype.
      */
-    void ( *txDone )( );
-
+    void    ( *TxDone )( void );
     /*!
      * @brief  Tx Timeout callback prototype.
      */
-    void ( *txTimeout ) ( );
-
+    void    ( *TxTimeout )( void );
     /*!
      * @brief Rx Done callback prototype.
      *
@@ -50,46 +42,48 @@ protected:
      *                     FSK : N/A ( set to 0 )
      *                     LoRa: SNR value in dB
      */
-    void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
-
+    void    ( *RxDone )( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
     /*!
      * @brief  Rx Timeout callback prototype.
      */
-    void ( *rxTimeout ) ( );
-    
+    void    ( *RxTimeout )( void );
     /*!
      * @brief Rx Error callback prototype.
      */
-    void ( *rxError ) ( );
-    
+    void    ( *RxError )( void );
     /*!
      * \brief  FHSS Change Channel callback prototype.
      *
-     * \param [IN] CurrentChannel   Index number of the current channel
+     * \param [IN] currentChannel   Index number of the current channel
      */
-    void ( *fhssChangeChannel )( uint8_t CurrentChannel );
+    void ( *FhssChangeChannel )( uint8_t currentChannel );
 
     /*!
      * @brief CAD Done callback prototype.
      *
-     * @param [IN] ChannelDetected    Channel Activity detected during the CAD
+     * @param [IN] channelDetected    Channel Activity detected during the CAD
      */
-    void ( *cadDone ) ( bool channelActivityDetected );
-    
+    void ( *CadDone ) ( bool channelActivityDetected );
+}RadioEvents_t;
+
+/*!
+ *    Interface for the radios, contains the main functions that a radio needs, and 5 callback functions
+ */
+class Radio
+{
+protected:
+    RadioEvents_t* RadioEvents;
+
 public:
     //-------------------------------------------------------------------------
     //                        Constructor
     //-------------------------------------------------------------------------
     /*!
      * @brief Constructor of the radio object, the parameters are the callback functions described in the header.
-     * @param [IN]    txDone
-     * @param [IN]    txTimeout
-     * @param [IN]    rxDone
-     * @param [IN]    rxTimeout
-     * @param [IN]    rxError
+     *
+     * @param [IN] events Structure containing the driver callback functions
      */
-    Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-           void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool channelActivityDetected ) );
+    Radio( RadioEvents_t *events );
     virtual ~Radio( ) {};
 
     //-------------------------------------------------------------------------
@@ -97,16 +91,23 @@ public:
     //-------------------------------------------------------------------------
 
     /*!
-     * Return current radio status
+     * @brief Initializes the radio
+     *
+     * @param [IN] events Structure containing the driver callback functions
+     */
+    virtual void Init( RadioEvents_t *events ) = 0;
+
+    /*!
+     * @brief Return current radio status
      *
      * @param status Radio status.[RF_IDLE, RF_RX_RUNNING, RF_TX_RUNNING]
      */
     virtual RadioState GetStatus( void ) = 0; 
 
     /*!
-     * \brief Configures the radio with the given modem
+     * @brief Configures the radio with the given modem
      *
-     * \param [IN] modem Modem to be used [0: FSK, 1: LoRa] 
+     * @param [IN] modem Modem to be used [0: FSK, 1: LoRa] 
      */
     virtual void SetModem( ModemType modem ) = 0;
 
@@ -343,4 +344,3 @@ public:
 };
 
 #endif // __RADIO_H__
-

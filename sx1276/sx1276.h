@@ -110,21 +110,25 @@ protected:
     void RxChainCalibration( void );
 
 public:
-    SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool channelActivityDetected ),
+    SX1276( RadioEvents_t *events,
             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 ); 
-    SX1276( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-            void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool channelActivityDetected ) );
+    SX1276( RadioEvents_t *events );
     virtual ~SX1276( );
     
     //-------------------------------------------------------------------------
     //                        Redefined Radio functions
     //-------------------------------------------------------------------------
     /*!
+     * @brief Initializes the radio
+     *
+     * @param [IN] events Structure containing the driver callback functions
+     */
+    virtual void Init( RadioEvents_t *events );
+    /*!
      * Return current radio status
      *
-     * @param status Radio status. [IDLE, RX_RUNNING, TX_RUNNING]
+     * @param status Radio status. [RF_IDLE, RX_RUNNING, TX_RUNNING]
      */
     virtual RadioState GetStatus( void ); 
     
@@ -497,4 +501,3 @@ protected:
 };
 
 #endif //__SX1276_H__
-

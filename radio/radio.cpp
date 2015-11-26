@@ -14,15 +14,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 #include "radio.h"
 
-Radio::Radio( void ( *txDone )( ), void ( *txTimeout ) ( ), void ( *rxDone ) ( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr ), 
-              void ( *rxTimeout ) ( ), void ( *rxError ) ( ), void ( *fhssChangeChannel ) ( uint8_t channelIndex ), void ( *cadDone ) ( bool channelActivityDetected ) )
+Radio::Radio( RadioEvents_t *events )
 {
-    this->txDone = txDone;
-    this->txTimeout = txTimeout;
-    this->rxDone = rxDone;
-    this->rxTimeout = rxTimeout;
-    this->rxError = rxError;
-    this->fhssChangeChannel = fhssChangeChannel;
-    this->cadDone = cadDone;
+    this->RadioEvents = events;
 }
-
