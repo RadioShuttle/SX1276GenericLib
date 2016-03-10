@@ -72,7 +72,7 @@ protected:
     
     uint8_t boardConnected; //1 = SX1276MB1LAS; 0 = SX1276MB1MAS
     
-    uint8_t *rxBuffer;
+    uint8_t *rxtxBuffer;
     
     uint8_t previousOpMode;
     

@@ -53,7 +53,7 @@ SX1276::SX1276( RadioEvents_t *events,
 {
     wait_ms( 10 );
     this->rxTx = 0;
-    this->rxBuffer = new uint8_t[RX_BUFFER_SIZE];
+    this->rxtxBuffer = new uint8_t[RX_BUFFER_SIZE];
     previousOpMode = RF_OPMODE_STANDBY;
     
     this->RadioEvents = events;
@@ -72,7 +72,7 @@ SX1276::SX1276( RadioEvents_t *events,
 
 SX1276::~SX1276( )
 {
-    delete this->rxBuffer;
+    delete this->rxtxBuffer;
     delete this->dioIrq;
 }
 
@@ -252,7 +252,11 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
             {
                 Write( REG_PAYLOADLENGTH, payloadLen );
             }
-
+            else
+            {
+                Write( REG_PAYLOADLENGTH, 0xFF ); // Set payload length to the maximum 
+            }
+            
             Write( REG_PACKETCONFIG1,
                          ( Read( REG_PACKETCONFIG1 ) & 
                            RF_PACKETCONFIG1_CRC_MASK &
@@ -673,6 +677,7 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
             }
             else
             {
+                memcpy( rxtxBuffer, buffer, size );
                 this->settings.FskPacketHandler.ChunkSize = 32;
             }
 
@@ -755,6 +760,7 @@ void SX1276::Rx( uint32_t timeout )
             // DIO4=Preamble
             // DIO5=ModeReady
             Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RF_DIOMAPPING1_DIO0_MASK &
+                                                                            RF_DIOMAPPING1_DIO1_MASK &
                                                                             RF_DIOMAPPING1_DIO2_MASK ) |
                                                                             RF_DIOMAPPING1_DIO0_00 |
                                                                             RF_DIOMAPPING1_DIO2_11 );
@@ -869,7 +875,7 @@ void SX1276::Rx( uint32_t timeout )
         break;
     }
 
-    memset( rxBuffer, 0, ( size_t )RX_BUFFER_SIZE );
+    memset( rxtxBuffer, 0, ( size_t )RX_BUFFER_SIZE );
 
     this->settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
@@ -911,13 +917,14 @@ void SX1276::Tx( uint32_t timeout )
     case MODEM_FSK:
         {
             // DIO0=PacketSent
-            // DIO1=FifoLevel
+            // DIO1=FifoEmpty
             // DIO2=FifoFull
             // DIO3=FifoEmpty
             // DIO4=LowBat
             // DIO5=ModeReady
             Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RF_DIOMAPPING1_DIO0_MASK &
-                                                                            RF_DIOMAPPING1_DIO2_MASK ) );
+                                                                RF_DIOMAPPING1_DIO2_MASK ) |
+                                                                RF_DIOMAPPING1_DIO1_01 );
 
             Write( REG_DIOMAPPING2, ( Read( REG_DIOMAPPING2 ) & RF_DIOMAPPING2_DIO4_MASK &
                                                                             RF_DIOMAPPING2_MAP_MASK ) );
@@ -1201,12 +1208,12 @@ void SX1276::OnDio0Irq( void )
                     {
                         this->settings.FskPacketHandler.Size = Read( REG_PAYLOADLENGTH );
                     }
-                    ReadFifo( rxBuffer + this->settings.FskPacketHandler.NbBytes, this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
+                    ReadFifo( rxtxBuffer + this->settings.FskPacketHandler.NbBytes, this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                     this->settings.FskPacketHandler.NbBytes += ( this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                 }
                 else
                 {
-                    ReadFifo( rxBuffer + this->settings.FskPacketHandler.NbBytes, this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
+                    ReadFifo( rxtxBuffer + this->settings.FskPacketHandler.NbBytes, this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                     this->settings.FskPacketHandler.NbBytes += ( this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                 }
 
@@ -1228,7 +1235,7 @@ void SX1276::OnDio0Irq( void )
 
                 if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxDone != NULL ) )
                 {
-                    this->RadioEvents->RxDone( rxBuffer, this->settings.FskPacketHandler.Size, this->settings.FskPacketHandler.RssiValue, 0 ); 
+                    this->RadioEvents->RxDone( rxtxBuffer, this->settings.FskPacketHandler.Size, this->settings.FskPacketHandler.RssiValue, 0 ); 
                 } 
                 this->settings.FskPacketHandler.PreambleDetected = false;
                 this->settings.FskPacketHandler.SyncWordDetected = false;
@@ -1301,7 +1308,7 @@ void SX1276::OnDio0Irq( void )
                     }
 
                     this->settings.LoRaPacketHandler.Size = Read( REG_LR_RXNBBYTES );
-                    ReadFifo( rxBuffer, this->settings.LoRaPacketHandler.Size );
+                    ReadFifo( rxtxBuffer, this->settings.LoRaPacketHandler.Size );
                 
                     if( this->settings.LoRa.RxContinuous == false )
                     {
@@ -1311,7 +1318,7 @@ void SX1276::OnDio0Irq( void )
 
                     if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxDone != NULL ) )
                     {
-                        this->RadioEvents->RxDone( rxBuffer, this->settings.LoRaPacketHandler.Size, this->settings.LoRaPacketHandler.RssiValue, this->settings.LoRaPacketHandler.SnrValue );
+                        this->RadioEvents->RxDone( rxtxBuffer, this->settings.LoRaPacketHandler.Size, this->settings.LoRaPacketHandler.RssiValue, this->settings.LoRaPacketHandler.SnrValue );
                     }
                 }
                 break;
@@ -1367,12 +1374,12 @@ void SX1276::OnDio1Irq( void )
 
                 if( ( this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes ) > this->settings.FskPacketHandler.FifoThresh )
                 {
-                    ReadFifo( ( rxBuffer + this->settings.FskPacketHandler.NbBytes ), this->settings.FskPacketHandler.FifoThresh );
+                    ReadFifo( ( rxtxBuffer + this->settings.FskPacketHandler.NbBytes ), this->settings.FskPacketHandler.FifoThresh );
                     this->settings.FskPacketHandler.NbBytes += this->settings.FskPacketHandler.FifoThresh;
                 }
                 else
                 {
-                    ReadFifo( ( rxBuffer + this->settings.FskPacketHandler.NbBytes ), this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
+                    ReadFifo( ( rxtxBuffer + this->settings.FskPacketHandler.NbBytes ), this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                     this->settings.FskPacketHandler.NbBytes += ( this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                 }
                 break;
@@ -1396,13 +1403,13 @@ void SX1276::OnDio1Irq( void )
                 // FifoLevel interrupt
                 if( ( this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes ) > this->settings.FskPacketHandler.ChunkSize )
                 {
-                    WriteFifo( ( rxBuffer + this->settings.FskPacketHandler.NbBytes ), this->settings.FskPacketHandler.ChunkSize );
+                    WriteFifo( ( rxtxBuffer + this->settings.FskPacketHandler.NbBytes ), this->settings.FskPacketHandler.ChunkSize );
                     this->settings.FskPacketHandler.NbBytes += this->settings.FskPacketHandler.ChunkSize;
                 }
                 else 
                 {
                     // Write the last chunk of data
-                    WriteFifo( rxBuffer + this->settings.FskPacketHandler.NbBytes, this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
+                    WriteFifo( rxtxBuffer + this->settings.FskPacketHandler.NbBytes, this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                     this->settings.FskPacketHandler.NbBytes += this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes;
                 }
                 break;
