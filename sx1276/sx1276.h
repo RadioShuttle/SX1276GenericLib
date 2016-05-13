@@ -23,7 +23,18 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 /*!
  * Radio wakeup time from SLEEP mode
  */
-#define RADIO_WAKEUP_TIME                           1000 // [us]
+#define RADIO_OSC_STARTUP                           1000 // [us]
+
+/*!
+ * Radio PLL lock and Mode Ready delay which can vary with the temperature
+ */
+#define RADIO_SLEEP_TO_RX                           2000 // [us]
+
+/*!
+ * Radio complete Wake-up Time with margin for temperature compensation
+ */
+#define RADIO_WAKEUP_TIME                           ( RADIO_OSC_STARTUP + RADIO_SLEEP_TO_RX )
+
 
 /*!
  * SX1276 definitions
@@ -67,34 +78,34 @@ protected:
     InterruptIn dio3;
     InterruptIn dio4;
     DigitalIn dio5;
-    
+
     bool isRadioActive;
-    
+
     uint8_t boardConnected; //1 = SX1276MB1LAS; 0 = SX1276MB1MAS
-    
+
     uint8_t *rxtxBuffer;
     
-    uint8_t previousOpMode;
-    
+    uint8_t currentOpMode;
+
     /*!
      * Hardware DIO IRQ functions
      */
     DioIrqHandler *dioIrq;
-    
+
     /*!
      * Tx and Rx timers
      */
     Timeout txTimeoutTimer;
     Timeout rxTimeoutTimer;
     Timeout rxTimeoutSyncWord;
-    
+
     /*!
      *  rxTx: [1: Tx, 0: Rx]
      */
     uint8_t rxTx;
-    
+
     RadioSettings_t settings;
-    
+
     static const FskBandwidth_t FskBandwidths[] ;
 protected:
 
@@ -127,7 +138,7 @@ public:
      * @param status Radio status. [RF_IDLE, RX_RUNNING, TX_RUNNING]
      */
     virtual RadioState GetStatus( void ); 
-    
+
     /*!
      * @brief Configures the SX1276 with the given modem
      *
@@ -141,7 +152,7 @@ public:
      * @param [IN] freq         Channel RF frequency
      */
     virtual void SetChannel( uint32_t freq );
-    
+
     /*!
      * @brief Sets the channels configuration
      *
@@ -152,7 +163,7 @@ public:
      * @retval isFree         [true: Channel is free, false: Channel is not free]
      */
     virtual bool IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh );
-    
+
     /*!
      * @brief Generates a 32 bits random value based on the RSSI readings
      *
@@ -164,7 +175,7 @@ public:
      * @retval randomValue    32 bits random value
      */
     virtual uint32_t Random( void );
-    
+
     /*!
      * @brief Sets the reception parameters
      *
@@ -207,7 +218,7 @@ public:
                                uint8_t payloadLen,
                                bool crcOn, bool freqHopOn, uint8_t hopPeriod,
                                bool iqInverted, bool rxContinuous );
-    
+
     /*!
      * @brief Sets the transmission parameters
      *
@@ -242,7 +253,7 @@ public:
                               uint8_t coderate, uint16_t preambleLen,
                               bool fixLen, bool crcOn, bool freqHopOn,
                               uint8_t hopPeriod, bool iqInverted, uint32_t timeout );
-    
+
     /*!
      * @brief Computes the packet time on air for the given payload
      *
@@ -254,7 +265,7 @@ public:
      * @retval airTime        Computed airTime for the given packet payload length
      */
     virtual double TimeOnAir ( RadioModems_t modem, uint8_t pktLen );
-    
+
     /*!
      * @brief Sends the buffer of size. Prepares the packet to be sent and sets
      *        the radio in transmission
@@ -263,7 +274,7 @@ public:
      * @param [IN]: size       Buffer size
      */
     virtual void Send( uint8_t *buffer, uint8_t size );
-    
+
     /*!
      * @brief Sets the radio in sleep mode
      */
@@ -273,33 +284,33 @@ public:
      * @brief Sets the radio in standby mode
      */
     virtual void Standby( void );
-    
+
     /*!
      * @brief Sets the radio in reception mode for the given time
      * @param [IN] timeout Reception timeout [us]
      *                     [0: continuous, others timeout]
      */
     virtual void Rx( uint32_t timeout );
-    
+
     /*!
      * @brief Sets the radio in transmission mode for the given time
      * @param [IN] timeout Transmission timeout [us]
      *                     [0: continuous, others timeout]
      */
     virtual void Tx( uint32_t timeout );
-    
+
     /*!
      * @brief Start a Channel Activity Detection
      */
     virtual void StartCad( void );    
-    
+
     /*!
      * @brief Reads the current RSSI value
      *
      * @retval rssiValue Current RSSI value in [dBm]
      */
     virtual int16_t GetRssi ( RadioModems_t modem );
-    
+
     /*!
      * @brief Writes the radio register at the specified address
      *
@@ -307,7 +318,7 @@ public:
      * @param [IN]: data New register value
      */
     virtual void Write ( uint8_t addr, uint8_t data ) = 0;
-    
+
     /*!
      * @brief Reads the radio register at the specified address
      *
@@ -315,7 +326,7 @@ public:
      * @retval data Register value
      */
     virtual uint8_t Read ( uint8_t addr ) = 0;
-    
+
     /*!
      * @brief Writes multiple radio registers starting at address
      *
@@ -324,7 +335,7 @@ public:
      * @param [IN] size   Number of registers to be written
      */
     virtual void Write( uint8_t addr, uint8_t *buffer, uint8_t size ) = 0;
-    
+
     /*!
      * @brief Reads multiple radio registers starting at address
      *
@@ -333,7 +344,7 @@ public:
      * @param [IN] size Number of registers to be read
      */
     virtual void Read ( uint8_t addr, uint8_t *buffer, uint8_t size ) = 0;
-    
+
     /*!
      * @brief Writes the buffer contents to the SX1276 FIFO
      *
@@ -353,7 +364,7 @@ public:
      * @brief Resets the SX1276
      */
     virtual void Reset( void ) = 0;
-    
+
     /*!
      * @brief Sets the maximum payload length.
      *
@@ -361,11 +372,11 @@ public:
      * @param [IN] max        Maximum payload length in bytes
      */
     virtual void SetMaxPayloadLength( RadioModems_t modem, uint8_t max );
-    
+
     //-------------------------------------------------------------------------
     //                        Board relative functions
     //-------------------------------------------------------------------------
-    
+
 protected:
     /*!
      * @brief Initializes the radio I/Os pins interface
@@ -381,7 +392,7 @@ protected:
      * @brief Initializes the radio SPI
      */
     virtual void SpiInit( void ) = 0;
-    
+
     /*!
      * @brief Initializes DIO IRQ handlers
      *
@@ -431,7 +442,7 @@ protected:
      * @param [IN] rxTx [1: Tx, 0: Rx]
      */
     virtual void SetAntSw( uint8_t rxTx ) = 0;
-    
+
     /*!
      * @brief Checks if the given RF frequency is supported by the hardware
      *
@@ -486,7 +497,7 @@ protected:
      * @brief Tx & Rx timeout timer callback
      */
     virtual void OnTimeoutIrq( void );
-    
+
     /*!
      * Returns the known FSK bandwidth registers value
      *

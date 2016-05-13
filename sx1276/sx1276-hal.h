@@ -26,6 +26,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
     { MODEM_FSK , REG_LNA                , 0x23 },\
     { MODEM_FSK , REG_RXCONFIG           , 0x1E },\
     { MODEM_FSK , REG_RSSICONFIG         , 0xD2 },\
+    { MODEM_FSK , REG_AFCFEI             , 0x01 },\
     { MODEM_FSK , REG_PREAMBLEDETECT     , 0xAA },\
     { MODEM_FSK , REG_OSC                , 0x07 },\
     { MODEM_FSK , REG_SYNCCONFIG         , 0x12 },\
@@ -50,28 +51,28 @@ protected:
      * Antenna switch GPIO pins objects
      */
     DigitalInOut antSwitch;
-    
+
     DigitalIn fake;
-    
+
 private:
     static const RadioRegisters_t RadioRegsInit[];
-    
+
 public:
     SX1276MB1xAS( RadioEvents_t *events,
             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
             PinName antSwitch ); 
-    
+
     SX1276MB1xAS( RadioEvents_t *events );
-    
+
     virtual ~SX1276MB1xAS( ) { };
-    
-    protected:
+
+protected:
     /*!
      * @brief Initializes the radio I/Os pins interface
      */
     virtual void IoInit( void );
-    
+
     /*!
      *  @brief Initializes the radio registers
      */
@@ -81,7 +82,7 @@ public:
      * @brief Initializes the radio SPI
      */
     virtual void SpiInit( void );
-    
+
     /*!
      * @brief Initializes DIO IRQ handlers
      *
@@ -131,13 +132,13 @@ public:
      * @param [IN] rxTx [1: Tx, 0: Rx]
      */
     virtual void SetAntSw( uint8_t rxTx );
-    
-    public:
+
+public:
     /*!
      * @brief Detect the board connected by reading the value of the antenna switch pin
      */
     virtual uint8_t DetectBoardType( void );    
-    
+
     /*!
      * @brief Checks if the given RF frequency is supported by the hardware
      *
@@ -145,15 +146,15 @@ public:
      * @retval isSupported [true: supported, false: unsupported]
      */
     virtual bool CheckRfFrequency( uint32_t frequency );
-    
-        /*!
+
+    /*!
      * @brief Writes the radio register at the specified address
      *
      * @param [IN]: addr Register address
      * @param [IN]: data New register value
      */
     virtual void Write ( uint8_t addr, uint8_t data ) ;
-    
+
     /*!
      * @brief Reads the radio register at the specified address
      *
@@ -161,7 +162,7 @@ public:
      * @retval data Register value
      */
     virtual uint8_t Read ( uint8_t addr ) ;
-    
+
     /*!
      * @brief Writes multiple radio registers starting at address
      *
@@ -170,7 +171,7 @@ public:
      * @param [IN] size   Number of registers to be written
      */
     virtual void Write( uint8_t addr, uint8_t *buffer, uint8_t size ) ;
-    
+
     /*!
      * @brief Reads multiple radio registers starting at address
      *
@@ -179,7 +180,7 @@ public:
      * @param [IN] size Number of registers to be read
      */
     virtual void Read ( uint8_t addr, uint8_t *buffer, uint8_t size ) ;
-    
+
     /*!
      * @brief Writes the buffer contents to the SX1276 FIFO
      *
@@ -195,7 +196,7 @@ public:
      * @param [IN] size Number of bytes to be read from the FIFO
      */
     virtual void ReadFifo( uint8_t *buffer, uint8_t size ) ;
-    
+
     /*!
      * @brief Reset the SX1276
      */

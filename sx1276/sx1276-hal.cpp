@@ -23,7 +23,7 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
                             : SX1276( events, mosi, miso, sclk, nss, reset, dio0, dio1, dio2, dio3, dio4, dio5 ),
                             antSwitch( antSwitch ),
                         #if( defined ( TARGET_NUCLEO_L152RE ) )
-                            fake( D8 ) 
+                            fake( D8 )
                         #else
                             fake( A3 )
                         #endif
@@ -31,15 +31,15 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
     this->RadioEvents = events;
 
     Reset( );
-    
+
     RxChainCalibration( );
-    
+
     IoInit( );
-    
+
     SetOpMode( RF_OPMODE_SLEEP );
-    
+
     IoIrqInit( dioIrq );
-    
+
     RadioRegistersInit( );
 
     SetModem( MODEM_FSK );
@@ -47,7 +47,7 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
     this->settings.State = RF_IDLE ;
 }
 
-SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events ) 
+SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events )
                         #if defined ( TARGET_NUCLEO_L152RE )
                         :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, A3, D9 ), // For NUCLEO L152RE dio4 is on port A3
                             antSwitch( A4 ),
@@ -65,18 +65,18 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events )
     this->RadioEvents = events;
 
     Reset( );
-    
+
     boardConnected = UNKNOWN;
-    
+
     DetectBoardType( );
-    
+
     RxChainCalibration( );
-    
+
     IoInit( );
-    
+
     SetOpMode( RF_OPMODE_SLEEP );
     IoIrqInit( dioIrq );
-    
+
     RadioRegistersInit( );
 
     SetModem( MODEM_FSK );
@@ -140,12 +140,12 @@ void SX1276MB1xAS::SpiInit( void )
 
 void SX1276MB1xAS::IoIrqInit( DioIrqHandler *irqHandlers )
 {
-#if( defined ( TARGET_NUCLEO_L152RE ) ||  defined ( TARGET_LPC11U6X ) )
-    dio0.mode(PullDown);
-    dio1.mode(PullDown);   
-    dio2.mode(PullDown);
-    dio3.mode(PullDown); 
-    dio4.mode(PullDown); 
+#if( defined ( TARGET_NUCLEO_L152RE ) || defined ( TARGET_LPC11U6X ) )
+    dio0.mode( PullDown );
+    dio1.mode( PullDown );
+    dio2.mode( PullDown );
+    dio3.mode( PullDown );
+    dio4.mode( PullDown );
 #endif
     dio0.rise( this, static_cast< TriggerMB1xAS > ( irqHandlers[0] ) );
     dio1.rise( this, static_cast< TriggerMB1xAS > ( irqHandlers[1] ) );
@@ -207,14 +207,10 @@ void SX1276MB1xAS::AntSwDeInit( void )
 
 void SX1276MB1xAS::SetAntSw( uint8_t rxTx )
 {
-    if( this->rxTx == rxTx )
-    {
-        //no need to go further
-        return;
-    }
 
     this->rxTx = rxTx;
 
+    // 1: Tx, 0: Rx
     if( rxTx != 0 )
     {
         antSwitch = 1;
