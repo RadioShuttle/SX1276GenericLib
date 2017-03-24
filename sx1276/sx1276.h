@@ -52,6 +52,8 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 
 #define RF_MID_BAND_THRESH                          525000000
 
+#define MURTA_ANT_SWITCH    1   // STM B-L072Z-LRWAN1 device
+
 /*! 
  * Actual implementation of a SX1276 radio, inherits Radio
  */

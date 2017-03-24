@@ -19,14 +19,22 @@ const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALU
 SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
+#ifdef MURTA_ANT_SWITCH
+                            PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost )
+#else
                             PinName antSwitch )
+#endif
                             : SX1276( events, mosi, miso, sclk, nss, reset, dio0, dio1, dio2, dio3, dio4, dio5 ),
+#ifdef MURTA_ANT_SWITCH
+                            antSwitch(antSwitch), antSwitchTX(antSwitchTX), antSwitchTXBoost(antSwitchTXBoost),
+#else
                             antSwitch( antSwitch ),
-                        #if( defined ( TARGET_NUCLEO_L152RE ) )
+#endif
+#if( defined ( TARGET_NUCLEO_L152RE ) )
                             fake( D8 )
-                        #else
+#else
                             fake( A3 )
-                        #endif
+#endif
 {
     this->RadioEvents = events;
 
@@ -58,7 +66,11 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events )
                             fake( A3 )
                         #else
                         :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
+#ifdef MURTA_ANT_SWITCH
+                            antSwitch(A4), antSwitchTX(NC), antSwitchTXBoost(NC),
+#else
                             antSwitch( A4 ), 
+#endif
                             fake( A3 )
                         #endif
 {
@@ -128,7 +140,7 @@ void SX1276MB1xAS::SpiInit( void )
     nss = 1;    
     spi.format( 8,0 );   
     uint32_t frequencyToSet = 8000000;
-    #if( defined ( TARGET_NUCLEO_L152RE ) ||  defined ( TARGET_LPC11U6X ) )
+    #if( defined ( TARGET_NUCLEO_L152RE ) ||  defined ( TARGET_LPC11U6X ) || defined(TARGET_STM) )
         spi.frequency( frequencyToSet );
     #elif( defined ( TARGET_KL25Z ) ) //busclock frequency is halved -> double the spi frequency to compensate
         spi.frequency( frequencyToSet * 2 );
@@ -198,11 +210,19 @@ void SX1276MB1xAS::SetAntSwLowPower( bool status )
 void SX1276MB1xAS::AntSwInit( void )
 {
     antSwitch = 0;
+#ifdef MURTA_ANT_SWITCH
+    antSwitchTX = 0;
+    antSwitchTXBoost = 0;
+#endif
 }
 
 void SX1276MB1xAS::AntSwDeInit( void )
 {
     antSwitch = 0;
+#ifdef MURTA_ANT_SWITCH
+    antSwitchTX = 0;
+    antSwitchTXBoost = 0;
+#endif
 }
 
 void SX1276MB1xAS::SetAntSw( uint8_t rxTx )
@@ -213,11 +233,20 @@ void SX1276MB1xAS::SetAntSw( uint8_t rxTx )
     // 1: Tx, 0: Rx
     if( rxTx != 0 )
     {
+#ifdef MURTA_ANT_SWITCH
+        antSwitch = 0;  // RX
+        antSwitchTX = 1; // alternate: antSwitchTXBoost = 1
+#else
         antSwitch = 1;
-    }
-    else
-    {
+#endif
+    } else {
+#ifdef MURTA_ANT_SWITCH
+        antSwitch = 1;  // RX
+        antSwitchTX = 0;
+        antSwitchTXBoost = 0;
+#else
         antSwitch = 0;
+#endif
     }
 }
 

@@ -1,3 +1,4 @@
+#if 0
 /* Copyright (c) 2012 mbed.org, MIT License
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
@@ -55,6 +56,8 @@ static inline void debug_if(bool condition, const char *format, ...) {
 
 static inline void debug(const char *format, ...) {}
 static inline void debug(bool condition, const char *format, ...) {}
+
+#endif
 
 #endif
 
