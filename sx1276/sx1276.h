@@ -53,7 +53,9 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define RF_MID_BAND_THRESH                          525000000
 
 #ifdef TARGET_STM32L0
-#define MURTA_ANT_SWITCH    1   // STM B-L072Z-LRWAN1 device
+ #define MURATA_ANT_SWITCH	1   // STM B-L072Z-LRWAN1 device
+#elif TARGET_STM32L4
+ #define RFM95_MODULE		1	// RFM95 modules are SX1276MB1LAS compatible
 #endif
 
 /*! 

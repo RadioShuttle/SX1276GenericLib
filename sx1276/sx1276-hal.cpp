@@ -19,13 +19,13 @@ const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALU
 SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
                             PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost )
 #else
                             PinName antSwitch )
 #endif
                             : SX1276( events, mosi, miso, sclk, nss, reset, dio0, dio1, dio2, dio3, dio4, dio5 ),
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
                             antSwitch(antSwitch), antSwitchTX(antSwitchTX), antSwitchTXBoost(antSwitchTXBoost),
 #else
                             antSwitch( antSwitch ),
@@ -66,7 +66,7 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events )
                             fake( A3 )
                         #else
                         :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
                             antSwitch(A4), antSwitchTX(NC), antSwitchTXBoost(NC),
 #else
                             antSwitch( A4 ), 
@@ -116,6 +116,9 @@ uint8_t SX1276MB1xAS::DetectBoardType( void )
         antSwitch.output( );
         wait_ms( 1 );
     }
+#ifdef RFM95_MODULE
+    boardConnected = SX1276MB1LAS;
+#endif
     return ( boardConnected );
 }
 
@@ -210,7 +213,7 @@ void SX1276MB1xAS::SetAntSwLowPower( bool status )
 void SX1276MB1xAS::AntSwInit( void )
 {
     antSwitch = 0;
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
     antSwitchTX = 0;
     antSwitchTXBoost = 0;
 #endif
@@ -219,7 +222,7 @@ void SX1276MB1xAS::AntSwInit( void )
 void SX1276MB1xAS::AntSwDeInit( void )
 {
     antSwitch = 0;
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
     antSwitchTX = 0;
     antSwitchTXBoost = 0;
 #endif
@@ -233,14 +236,14 @@ void SX1276MB1xAS::SetAntSw( uint8_t rxTx )
     // 1: Tx, 0: Rx
     if( rxTx != 0 )
     {
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
         antSwitch = 0;  // RX
         antSwitchTX = 1; // alternate: antSwitchTXBoost = 1
 #else
         antSwitch = 1;
 #endif
     } else {
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
         antSwitch = 1;  // RX
         antSwitchTX = 0;
         antSwitchTXBoost = 0;
