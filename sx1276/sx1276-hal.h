@@ -51,7 +51,7 @@ protected:
      * Antenna switch GPIO pins objects
      */
     DigitalInOut antSwitch;
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
     DigitalInOut antSwitchTX;
     DigitalInOut antSwitchTXBoost;
 #endif
@@ -65,7 +65,7 @@ public:
     SX1276MB1xAS( RadioEvents_t *events,
             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
-#ifdef MURTA_ANT_SWITCH
+#ifdef MURATA_ANT_SWITCH
             PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost);
 #else
             PinName antSwitch );
