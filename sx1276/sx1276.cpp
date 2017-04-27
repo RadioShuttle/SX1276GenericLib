@@ -882,7 +882,7 @@ void SX1276::Rx( uint32_t timeout )
     this->settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
     {
-        rxTimeoutTimer.attach_us( this, &SX1276::OnTimeoutIrq, timeout );
+        rxTimeoutTimer.attach_us(callback(this, &SX1276::OnTimeoutIrq), timeout );
     }
 
     if( this->settings.Modem == MODEM_FSK )
@@ -891,7 +891,7 @@ void SX1276::Rx( uint32_t timeout )
 
         if( rxContinuous == false )
         {
-            rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
+            rxTimeoutSyncWord.attach_us(callback(this, &SX1276::OnTimeoutIrq), ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
                                                              ( ( Read( REG_SYNCCONFIG ) &
                                                                 ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
                                                                 1.0 ) + 10.0 ) /
@@ -969,7 +969,7 @@ void SX1276::Tx( uint32_t timeout )
     }
 
     this->settings.State = RF_TX_RUNNING;
-    txTimeoutTimer.attach_us( this, &SX1276::OnTimeoutIrq, timeout );
+    txTimeoutTimer.attach_us(callback(this, &SX1276::OnTimeoutIrq), timeout );
     SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
@@ -1121,7 +1121,7 @@ void SX1276::OnTimeoutIrq( void )
             {
                 // Continuous mode restart Rx chain
                 Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
+                rxTimeoutSyncWord.attach_us(callback(this, &SX1276::OnTimeoutIrq), ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
                                                              ( ( Read( REG_SYNCCONFIG ) &
                                                                 ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
                                                              1.0 ) + 10.0 ) /
@@ -1184,7 +1184,7 @@ void SX1276::OnDio0Irq( void )
                         {
                             // Continuous mode restart Rx chain
                             Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                            rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
+                            rxTimeoutSyncWord.attach_us(callback(this, &SX1276::OnTimeoutIrq), ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
                                                                          ( ( Read( REG_SYNCCONFIG ) &
                                                                             ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
                                                                          1.0 ) + 10.0 ) /
@@ -1235,7 +1235,7 @@ void SX1276::OnDio0Irq( void )
                 {
                     // Continuous mode restart Rx chain
                     Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                    rxTimeoutSyncWord.attach_us( this, &SX1276::OnTimeoutIrq, ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
+                    rxTimeoutSyncWord.attach_us(callback(this, &SX1276::OnTimeoutIrq), ceil( ( 8.0 * ( this->settings.Fsk.PreambleLen +
                                                                  ( ( Read( REG_SYNCCONFIG ) &
                                                                     ~RF_SYNCCONFIG_SYNCSIZE_MASK ) +
                                                                  1.0 ) + 10.0 ) /
