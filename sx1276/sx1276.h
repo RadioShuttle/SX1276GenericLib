@@ -23,7 +23,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 /*!
  * Radio wake-up time from sleep
  */
-#define RADIO_OSC_STARTUP                           1 // [ms]
+#define RADIO_WAKEUP_TIME                           1 // [ms]
 
 /*!
  * Sync word for Private LoRa networks
@@ -34,17 +34,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  * Sync word for Public LoRa networks
  */
 #define LORA_MAC_PUBLIC_SYNCWORD                    0x34
-
-
-/*!
- * Radio PLL lock and Mode Ready delay which can vary with the temperature
- */
-#define RADIO_SLEEP_TO_RX                           2000 // [us]
-
-/*!
- * Radio complete Wake-up Time with margin for temperature compensation
- */
-#define RADIO_WAKEUP_TIME                           ( RADIO_OSC_STARTUP + RADIO_SLEEP_TO_RX )
 
 
 /*!
