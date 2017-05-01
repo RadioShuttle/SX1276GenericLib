@@ -162,8 +162,8 @@ public:
      * @param [IN] preambleLen  Sets the Preamble length ( LoRa only )
      *                          FSK : N/A ( set to 0 )
      *                          LoRa: Length in symbols ( the hardware adds 4 more symbols )
-     * @param [IN] symbTimeout  Sets the RxSingle timeout value ( LoRa only )
-     *                          FSK : N/A ( set to 0 )
+     * @param [IN] symbTimeout  Sets the RxSingle timeout value
+     *                          FSK : timeout number of bytes
      *                          LoRa: timeout in symbols
      * @param [IN] fixLen       Fixed length packets [0: variable, 1: fixed]
      * @param [IN] payloadLen   Sets payload length when fixed lenght is used
@@ -183,7 +183,7 @@ public:
                                uint8_t payloadLen,
                                bool crcOn, bool freqHopOn, uint8_t hopPeriod,
                                bool iqInverted, bool rxContinuous ) = 0;
-    
+
     /*!
      * @brief Sets the transmission parameters
      *
@@ -218,7 +218,7 @@ public:
                               uint8_t coderate, uint16_t preambleLen,
                               bool fixLen, bool crcOn, bool freqHopOn,
                               uint8_t hopPeriod, bool iqInverted, uint32_t timeout ) = 0;
-    
+
     /*!
      * @brief Checks if the given RF frequency is supported by the hardware
      *
@@ -237,7 +237,7 @@ public:
      *
      * @retval airTime        Computed airTime for the given packet payload length
      */
-    virtual double TimeOnAir ( RadioModems_t modem, uint8_t pktLen ) = 0;
+    virtual uint32_t TimeOnAir ( RadioModems_t modem, uint8_t pktLen ) = 0;
     
     /*!
      * @brief Sends the buffer of size. Prepares the packet to be sent and sets
@@ -247,43 +247,52 @@ public:
      * @param [IN]: size       Buffer size
      */
     virtual void Send( uint8_t *buffer, uint8_t size ) = 0;
-    
+
     /*!
      * @brief Sets the radio in sleep mode
      */
     virtual void Sleep( void ) = 0;
-    
+
     /*!
      * @brief Sets the radio in standby mode
      */
     virtual void Standby( void ) = 0;
-    
+
     /*!
      * @brief Sets the radio in CAD mode
      */
     virtual void StartCad( void ) = 0;
-    
+
     /*!
      * @brief Sets the radio in reception mode for the given time
      * @param [IN] timeout Reception timeout [us]
      *                     [0: continuous, others timeout]
      */
     virtual void Rx( uint32_t timeout ) = 0;
-    
+
     /*!
      * @brief Sets the radio in transmission mode for the given time
      * @param [IN] timeout Transmission timeout [us]
      *                     [0: continuous, others timeout]
      */
     virtual void Tx( uint32_t timeout ) = 0;
-    
+
+    /*!
+     * @brief Sets the radio in continuous wave transmission mode
+     *
+     * @param [IN]: freq       Channel RF frequency
+     * @param [IN]: power      Sets the output power [dBm]
+     * @param [IN]: time       Transmission mode timeout [s]
+     */
+    virtual void SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time ) = 0;
+
     /*!
      * @brief Reads the current RSSI value
      *
      * @retval rssiValue Current RSSI value in [dBm]
      */
     virtual int16_t GetRssi ( RadioModems_t modem ) = 0;
-    
+
     /*!
      * @brief Writes the radio register at the specified address
      *
@@ -291,7 +300,7 @@ public:
      * @param [IN]: data New register value
      */
     virtual void Write ( uint8_t addr, uint8_t data ) = 0;
-    
+
     /*!
      * @brief Reads the radio register at the specified address
      *
@@ -299,7 +308,7 @@ public:
      * @retval data Register value
      */
     virtual uint8_t Read ( uint8_t addr ) = 0;
-    
+
     /*!
      * @brief Writes multiple radio registers starting at address
      *
@@ -308,7 +317,7 @@ public:
      * @param [IN] size   Number of registers to be written
      */
     virtual void Write( uint8_t addr, uint8_t *buffer, uint8_t size ) = 0;
-    
+
     /*!
      * @brief Reads multiple radio registers starting at address
      *
@@ -317,9 +326,9 @@ public:
      * @param [IN] size Number of registers to be read
      */
     virtual void Read ( uint8_t addr, uint8_t *buffer, uint8_t size ) = 0;
-    
+
     /*!
-     * @brief Writes the buffer contents to the SX1276 FIFO
+     * @brief Writes the buffer contents to the Radio FIFO
      *
      * @param [IN] buffer Buffer containing data to be put on the FIFO.
      * @param [IN] size Number of bytes to be written to the FIFO
@@ -327,13 +336,13 @@ public:
     virtual void WriteFifo( uint8_t *buffer, uint8_t size ) = 0;
 
     /*!
-     * @brief Reads the contents of the SX1276 FIFO
+     * @brief Reads the contents of the Radio FIFO
      *
      * @param [OUT] buffer Buffer where to copy the FIFO read data.
      * @param [IN] size Number of bytes to be read from the FIFO
      */
     virtual void ReadFifo( uint8_t *buffer, uint8_t size ) = 0;
-    
+
     /*!
      * @brief Sets the maximum payload length.
      *
@@ -341,6 +350,15 @@ public:
      * @param [IN] max        Maximum payload length in bytes
      */
     virtual void SetMaxPayloadLength( RadioModems_t modem, uint8_t max ) = 0;
+
+    /*!
+     * @brief Sets the network to public or private. Updates the sync byte.
+     *
+     * @remark Applies to LoRa modem only
+     *
+     * @param [IN] enable if true, it enables a public network
+     */
+    virtual void SetPublicNetwork( bool enable ) = 0;
 };
 
 #endif // __RADIO_H__

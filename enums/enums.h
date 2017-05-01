@@ -62,6 +62,7 @@ typedef struct
     bool     IqInverted;
     bool     RxContinuous;
     uint32_t TxTimeout;
+    uint32_t RxSingleTimeout;
 }RadioFskSettings_t;
 
 /*!
@@ -99,6 +100,7 @@ typedef struct
     bool     IqInverted;
     bool     RxContinuous;
     uint32_t TxTimeout;
+    bool     PublicNetwork;
 }RadioLoRaSettings_t;
 
 /*!

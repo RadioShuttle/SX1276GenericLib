@@ -26,14 +26,14 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
 #endif
                             : SX1276( events, mosi, miso, sclk, nss, reset, dio0, dio1, dio2, dio3, dio4, dio5 ),
 #ifdef MURATA_ANT_SWITCH
-                            antSwitch(antSwitch), antSwitchTX(antSwitchTX), antSwitchTXBoost(antSwitchTXBoost),
+                            AntSwitch(antSwitch), AntSwitchTX(antSwitchTX), AntSwitchTXBoost(antSwitchTXBoost),
 #else
-                            antSwitch( antSwitch ),
+                            AntSwitch( antSwitch ),
 #endif
 #if( defined ( TARGET_NUCLEO_L152RE ) )
-                            fake( D8 )
+                            Fake( D8 )
 #else
-                            fake( A3 )
+                            Fake( A3 )
 #endif
 {
     this->RadioEvents = events;
@@ -58,20 +58,20 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
 SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events )
                         #if defined ( TARGET_NUCLEO_L152RE )
                         :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, A3, D9 ), // For NUCLEO L152RE dio4 is on port A3
-                            antSwitch( A4 ),
-                            fake( D8 )
+                            AntSwitch( A4 ),
+                            Fake( D8 )
                         #elif defined( TARGET_LPC11U6X )
                         :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
-                            antSwitch( P0_23 ), 
-                            fake( A3 )
+                            AntSwitch( P0_23 ),
+                            Fake( A3 )
                         #else
                         :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
 #ifdef MURATA_ANT_SWITCH
-                            antSwitch(A4), antSwitchTX(NC), antSwitchTXBoost(NC),
+                            AntSwitch(A4), AntSwitchTX(NC), AntSwitchTXBoost(NC),
 #else
-                            antSwitch( A4 ), 
+                            AntSwitch( A4 ),
 #endif
-                            fake( A3 )
+                            Fake( A3 )
                         #endif
 {
     this->RadioEvents = events;
@@ -103,9 +103,9 @@ uint8_t SX1276MB1xAS::DetectBoardType( void )
 {
     if( boardConnected == UNKNOWN )
     {
-        antSwitch.input( );
+		this->AntSwitch.input( );
         wait_ms( 1 );
-        if( antSwitch == 1 )
+        if(  this->AntSwitch == 1 )
         {
             boardConnected = SX1276MB1LAS;
         }
@@ -113,7 +113,7 @@ uint8_t SX1276MB1xAS::DetectBoardType( void )
         {
             boardConnected = SX1276MB1MAS;
         }
-        antSwitch.output( );
+         this->AntSwitch.output( );
         wait_ms( 1 );
     }
 #ifdef RFM95_MODULE
@@ -143,7 +143,7 @@ void SX1276MB1xAS::SpiInit( void )
     nss = 1;    
     spi.format( 8,0 );   
     uint32_t frequencyToSet = 8000000;
-    #if( defined ( TARGET_NUCLEO_L152RE ) ||  defined ( TARGET_LPC11U6X ) || defined(TARGET_STM) )
+    #if( defined ( TARGET_NUCLEO_L152RE ) || defined ( TARGET_LPC11U6X ) || defined(TARGET_STM) )
         spi.frequency( frequencyToSet );
     #elif( defined ( TARGET_KL25Z ) ) //busclock frequency is halved -> double the spi frequency to compensate
         spi.frequency( frequencyToSet * 2 );
@@ -173,6 +173,69 @@ void SX1276MB1xAS::IoDeInit( void )
 {
     //nothing
 }
+
+void SX1276MB1xAS::SetRfTxPower( int8_t power )
+{
+    uint8_t paConfig = 0;
+    uint8_t paDac = 0;
+    
+    paConfig = Read( REG_PACONFIG );
+    paDac = Read( REG_PADAC );
+    
+    paConfig = ( paConfig & RF_PACONFIG_PASELECT_MASK ) | GetPaSelect( this->settings.Channel );
+    paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK ) | 0x70;
+    
+    if( ( paConfig & RF_PACONFIG_PASELECT_PABOOST ) == RF_PACONFIG_PASELECT_PABOOST )
+    {
+        if( power > 17 )
+        {
+            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_ON;
+        }
+        else
+        {
+            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_OFF;
+        }
+        if( ( paDac & RF_PADAC_20DBM_ON ) == RF_PADAC_20DBM_ON )
+        {
+            if( power < 5 )
+            {
+                power = 5;
+            }
+            if( power > 20 )
+            {
+                power = 20;
+            }
+            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 5 ) & 0x0F );
+        }
+        else
+        {
+            if( power < 2 )
+            {
+                power = 2;
+            }
+            if( power > 17 )
+            {
+                power = 17;
+            }
+            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 2 ) & 0x0F );
+        }
+    }
+    else
+    {
+        if( power < -1 )
+        {
+            power = -1;
+        }
+        if( power > 14 )
+        {
+            power = 14;
+        }
+        paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power + 1 ) & 0x0F );
+    }
+    Write( REG_PACONFIG, paConfig );
+    Write( REG_PADAC, paDac );
+}
+
 
 uint8_t SX1276MB1xAS::GetPaSelect( uint32_t channel )
 {
@@ -212,63 +275,73 @@ void SX1276MB1xAS::SetAntSwLowPower( bool status )
 
 void SX1276MB1xAS::AntSwInit( void )
 {
-    antSwitch = 0;
+    this->AntSwitch = 0;
 #ifdef MURATA_ANT_SWITCH
-    antSwitchTX = 0;
-    antSwitchTXBoost = 0;
+    AntSwitchTX = 0;
+    AntSwitchTXBoost = 0;
 #endif
 }
 
 void SX1276MB1xAS::AntSwDeInit( void )
 {
-    antSwitch = 0;
+    this->AntSwitch = 0;
 #ifdef MURATA_ANT_SWITCH
-    antSwitchTX = 0;
-    antSwitchTXBoost = 0;
+    AntSwitchTX = 0;
+    AntSwitchTXBoost = 0;
 #endif
 }
 
-void SX1276MB1xAS::SetAntSw( uint8_t rxTx )
+
+void SX1276MB1xAS::SetAntSw( uint8_t opMode )
 {
-
-    this->rxTx = rxTx;
-
-    // 1: Tx, 0: Rx
-    if( rxTx != 0 )
+    switch( opMode )
     {
+        case RFLR_OPMODE_TRANSMITTER:
 #ifdef MURATA_ANT_SWITCH
-        antSwitch = 0;  // RX
-        antSwitchTX = 1; // alternate: antSwitchTXBoost = 1
+            this->AntSwitch = 0;  // Murata-RX
+            AntSwitchTX = 1; // alternate: antSwitchTXBoost = 1
 #else
-        antSwitch = 1;
+        	this->AntSwitch = 1;
 #endif
-    } else {
+            break;
+        case RFLR_OPMODE_RECEIVER:
+        case RFLR_OPMODE_RECEIVER_SINGLE:
+        case RFLR_OPMODE_CAD:
 #ifdef MURATA_ANT_SWITCH
-        antSwitch = 1;  // RX
-        antSwitchTX = 0;
-        antSwitchTXBoost = 0;
+            this->AntSwitch = 1;  // Murata-RX
+            AntSwitchTX = 0;
+            AntSwitchTXBoost = 0;
 #else
-        antSwitch = 0;
+        	this->AntSwitch = 0;
 #endif
+            break;
+        default:
+#ifdef MURATA_ANT_SWITCH
+            this->AntSwitch = 1;  //Murata-RX
+            AntSwitchTX = 0;
+            AntSwitchTXBoost = 0;
+#else
+            this->AntSwitch = 0;
+#endif
+            break;
     }
 }
 
 bool SX1276MB1xAS::CheckRfFrequency( uint32_t frequency )
 {
-    //TODO: Implement check, currently all frequencies are supported
+    // Implement check. Currently all frequencies are supported
     return true;
 }
 
-
 void SX1276MB1xAS::Reset( void )
 {
-    reset.output();
-    reset = 0;
-    wait_ms( 1 );
-    reset.input();
-    wait_ms( 6 );
+	reset.output();
+	reset = 0;
+	wait_ms( 1 );
+	reset.input();
+	wait_ms( 6 );
 }
-    
+
 void SX1276MB1xAS::Write( uint8_t addr, uint8_t data )
 {
     Write( addr, &data, 1 );
