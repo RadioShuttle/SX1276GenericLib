@@ -42,6 +42,8 @@ typedef enum BoardType
 {
     SX1276MB1MAS = 0,
     SX1276MB1LAS,
+    RFM95_SX1276,
+    MURATA_SX1276,
     UNKNOWN
 }BoardType_t;
 

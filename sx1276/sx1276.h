@@ -58,7 +58,52 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  #define RFM95_MODULE		1	// RFM95 modules are SX1276MB1LAS compatible
 #endif
 
-/*! 
+typedef enum {
+    LORA_BANKWIDTH_7kHz  = 0, //  7.8 kHz requires TCXO
+    LORA_BANKWIDTH_10kHz = 1, // 10.4 kHz requires TCXO
+    LORA_BANKWIDTH_15kHz = 2, // 15.6 kHz requires TCXO
+    LORA_BANKWIDTH_20kHz = 3, // 20.8 kHz requires TCXO
+    LORA_BANKWIDTH_31kHz = 4, // 31.2 kHz requires TCXO
+	LORA_BANKWIDTH_41kHz = 5, // 41.4 kHz requires TCXO
+	LORA_BANKWIDTH_62kHz = 6, // 62.5 kHz requires TCXO
+    
+    LORA_BANKWIDTH_125kHz = 7,
+    LORA_BANKWIDTH_250kHz = 8,
+    LORA_BANKWIDTH_500kHz = 9,
+    LORA_BANKWIDTH_RESERVED = 10,
+} Lora_bandwidth_t;
+
+
+
+typedef enum {
+    LORA_SF6 =  6,  //   64 chips/symbol, SF6 requires an TCXO!
+    LORA_SF7 =  7,  //  128 chips/symbol
+    LORA_SF8 =  8,  //  256 chips/symbol
+    LORA_SF9 =  9,  //  512 chips/symbol
+    LORA_SF10 = 10, // 1024 chips/symbol
+    LORA_SF11 = 11, // 2048 chips/symbol
+    LORA_SF12 = 12, // 4096 chips/symbol
+} lora_spreading_factor_t;
+
+
+typedef enum {  // cyclic error coding to perform forward error detection and correction
+    LORA_ERROR_CODING_RATE_4_5 = 1,   // 1.25x overhead
+    LORA_ERROR_CODING_RATE_4_6 = 2,   // 1.50x overhead
+    LORA_ERROR_CODING_RATE_4_7 = 3,   // 1.75x overhead
+    LORA_ERROR_CODING_RATE_4_8 = 4,   // 2.00x overhead
+} lora_coding_rate_t;
+
+
+typedef enum {
+    RF_FREQUENCY_868_0 = 868000000, // Hz
+    RF_FREQUENCY_868_1 = 868100000, // Hz
+    RF_FREQUENCY_868_3 = 868300000, // Hz
+    RF_FREQUENCY_868_5 = 868500000, // Hz
+} rf_frequency_t;
+
+
+
+/*!
  * Actual implementation of a SX1276 radio, inherits Radio
  */
 class SX1276 : public Radio

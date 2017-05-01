@@ -268,12 +268,11 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
         break;
     case MODEM_LORA:
         {
-            if( bandwidth > 2 )
+            if( bandwidth > LORA_BANKWIDTH_500kHz )
             {
                 // Fatal error: When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
                 while( 1 );
             }
-            bandwidth += 7;
             this->settings.LoRa.Bandwidth = bandwidth;
             this->settings.LoRa.Datarate = datarate;
             this->settings.LoRa.Coderate = coderate;
@@ -286,17 +285,17 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
             this->settings.LoRa.IqInverted = iqInverted;
             this->settings.LoRa.RxContinuous = rxContinuous;
 
-            if( datarate > 12 )
+            if( datarate > LORA_SF12 )
             {
-                datarate = 12;
+                datarate = LORA_SF12;
             }
-            else if( datarate < 6 )
+            else if( datarate < LORA_SF6 )
             {
-                datarate = 6;
+                datarate = LORA_SF6;
             }
 
-            if( ( ( bandwidth == 7 ) && ( ( datarate == 11 ) || ( datarate == 12 ) ) ) ||
-                ( ( bandwidth == 8 ) && ( datarate == 12 ) ) )
+            if( ( ( bandwidth == LORA_BANKWIDTH_125kHz ) && ( ( datarate == LORA_SF11 ) || ( datarate == LORA_SF12 ) ) ) ||
+                ( ( bandwidth == LORA_BANKWIDTH_250kHz ) && ( datarate == LORA_SF12 ) ) )
             {
                 this->settings.LoRa.LowDatarateOptimize = 0x01;
             }
@@ -342,13 +341,13 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                 Write( REG_LR_HOPPERIOD, this->settings.LoRa.HopPeriod );
             }
 
-			if( ( bandwidth == 9 ) && ( this->settings.Channel > RF_MID_BAND_THRESH ) )
+			if( ( bandwidth == LORA_BANKWIDTH_500kHz ) && ( this->settings.Channel > RF_MID_BAND_THRESH ) )
             {
                 // ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth
                 Write( REG_LR_TEST36, 0x02 );
                 Write( REG_LR_TEST3A, 0x64 );
             }
-            else if( bandwidth == 9 )
+            else if( bandwidth == LORA_BANKWIDTH_500kHz )
             {
                 // ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth
                 Write( REG_LR_TEST36, 0x02 );
@@ -360,7 +359,7 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                 Write( REG_LR_TEST36, 0x03 );
             }
 
-            if( datarate == 6 )
+            if( datarate == LORA_SF6 )
             {
 				Write( REG_LR_DETECTOPTIMIZE,
                              ( Read( REG_LR_DETECTOPTIMIZE ) &
@@ -429,12 +428,11 @@ void SX1276::SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
     case MODEM_LORA:
         {
             this->settings.LoRa.Power = power;
-            if( bandwidth > 2 )
+            if( bandwidth > LORA_BANKWIDTH_500kHz )
             {
                 // Fatal error: When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
                 while( 1 );
             }
-            bandwidth += 7;
             this->settings.LoRa.Bandwidth = bandwidth;
             this->settings.LoRa.Datarate = datarate;
             this->settings.LoRa.Coderate = coderate;
@@ -446,16 +444,16 @@ void SX1276::SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
             this->settings.LoRa.IqInverted = iqInverted;
             this->settings.LoRa.TxTimeout = timeout;
 
-            if( datarate > 12 )
+            if( datarate > LORA_SF12 )
             {
-                datarate = 12;
+                datarate = LORA_SF12;
             }
-            else if( datarate < 6 )
+            else if( datarate < LORA_SF6 )
             {
-                datarate = 6;
+                datarate = LORA_SF6;
             }
-            if( ( ( bandwidth == 7 ) && ( ( datarate == 11 ) || ( datarate == 12 ) ) ) ||
-                ( ( bandwidth == 8 ) && ( datarate == 12 ) ) )
+            if( ( ( bandwidth == LORA_BANKWIDTH_125kHz ) && ( ( datarate == LORA_SF11 ) || ( datarate == LORA_SF12 ) ) ) ||
+                ( ( bandwidth == LORA_BANKWIDTH_250kHz ) && ( datarate == LORA_SF12 ) ) )
             {
                 this->settings.LoRa.LowDatarateOptimize = 0x01;
             }
@@ -492,7 +490,7 @@ void SX1276::SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
             Write( REG_LR_PREAMBLEMSB, ( preambleLen >> 8 ) & 0x00FF );
             Write( REG_LR_PREAMBLELSB, preambleLen & 0xFF );
 
-            if( datarate == 6 )
+            if( datarate == LORA_SF6 )
             {
                 Write( REG_LR_DETECTOPTIMIZE,
                              ( Read( REG_LR_DETECTOPTIMIZE ) &
@@ -538,34 +536,34 @@ uint32_t SX1276::TimeOnAir( RadioModems_t modem, uint8_t pktLen )
             // REMARK: When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
             switch( this->settings.LoRa.Bandwidth )
             {
-            //case 0: // 7.8 kHz
-            //    bw = 78e2;
-            //    break;
-            //case 1: // 10.4 kHz
-            //    bw = 104e2;
-            //    break;
-            //case 2: // 15.6 kHz
-            //    bw = 156e2;
-            //    break;
-            //case 3: // 20.8 kHz
-            //    bw = 208e2;
-            //    break;
-            //case 4: // 31.2 kHz
-            //    bw = 312e2;
-            //    break;
-            //case 5: // 41.4 kHz
-            //    bw = 414e2;
-            //    break;
-            //case 6: // 62.5 kHz
-            //    bw = 625e2;
-            //    break;
-            case 7: // 125 kHz
+            case LORA_BANKWIDTH_7kHz: // 7.8 kHz
+                bw = 78e2;
+                break;
+            case LORA_BANKWIDTH_10kHz: // 10.4 kHz
+                bw = 104e2;
+                break;
+            case LORA_BANKWIDTH_15kHz: // 15.6 kHz
+                bw = 156e2;
+                break;
+            case LORA_BANKWIDTH_20kHz: // 20.8 kHz
+                bw = 208e2;
+                break;
+            case LORA_BANKWIDTH_31kHz: // 31.2 kHz
+        	    bw = 312e2;
+                break;
+            case LORA_BANKWIDTH_41kHz: // 41.4 kHz
+                bw = 414e2;
+                break;
+            case LORA_BANKWIDTH_62kHz: // 62.5 kHz
+                bw = 625e2;
+                break;
+            case LORA_BANKWIDTH_125kHz: // 125 kHz
                 bw = 125e3;
                 break;
-            case 8: // 250 kHz
+            case LORA_BANKWIDTH_250kHz: // 250 kHz
                 bw = 250e3;
                 break;
-            case 9: // 500 kHz
+            case LORA_BANKWIDTH_500kHz: // 500 kHz
                 bw = 500e3;
                 break;
             }
@@ -738,43 +736,43 @@ void SX1276::Rx( uint32_t timeout )
 			}
 
             // ERRATA 2.3 - Receiver Spurious Reception of a LoRa Signal
-            if( this->settings.LoRa.Bandwidth < 9 )
+            if( this->settings.LoRa.Bandwidth < LORA_BANKWIDTH_500kHz )
             {
                 Write( REG_LR_DETECTOPTIMIZE, Read( REG_LR_DETECTOPTIMIZE ) & 0x7F );
                 Write( REG_LR_TEST30, 0x00 );
                 switch( this->settings.LoRa.Bandwidth )
                 {
-                case 0: // 7.8 kHz
+                case LORA_BANKWIDTH_7kHz: // 7.8 kHz
                     Write( REG_LR_TEST2F, 0x48 );
                     SetChannel(this->settings.Channel + 7.81e3 );
                     break;
-                case 1: // 10.4 kHz
+                case LORA_BANKWIDTH_10kHz: // 10.4 kHz
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 10.42e3 );
                     break;
-                case 2: // 15.6 kHz
+                case LORA_BANKWIDTH_15kHz: // 15.6 kHz
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 15.62e3 );
                     break;
-                case 3: // 20.8 kHz
+                case LORA_BANKWIDTH_20kHz: // 20.8 kHz
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 20.83e3 );
                     break;
-                case 4: // 31.2 kHz
+                case LORA_BANKWIDTH_31kHz: // 31.2 kHz
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 31.25e3 );
                     break;
-                case 5: // 41.4 kHz
+                case LORA_BANKWIDTH_41kHz: // 41.4 kHz
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 41.67e3 );
                     break;
-                case 6: // 62.5 kHz
+                case LORA_BANKWIDTH_62kHz: // 62.5 kHz
                     Write( REG_LR_TEST2F, 0x40 );
                     break;
-                case 7: // 125 kHz
+                case LORA_BANKWIDTH_125kHz: // 125 kHz
                     Write( REG_LR_TEST2F, 0x40 );
                     break;
-                case 8: // 250 kHz
+                case LORA_BANKWIDTH_250kHz: // 250 kHz
                     Write( REG_LR_TEST2F, 0x40 );
                     break;
                 }
