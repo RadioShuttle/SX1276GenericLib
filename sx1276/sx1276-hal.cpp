@@ -320,7 +320,8 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
             if (boardConnected == MURATA_SX1276) {
 	            *_antSwitch = 0;// Murata-RX
 	            *_antSwitchTX = 1; 	// alternate: antSwitchTXBoost = 1
-    		} else {
+                *_antSwitchTXBoost = 0;
+            } else {
                 if (_antSwitch)
 	        		*_antSwitch = 1;
 			}
