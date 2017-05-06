@@ -4,6 +4,8 @@ Tasks we needs to be done. (move finished tasks to Done: with you name & date)
 - What needs to e done in the MURATA PA_BOOST case
 - Verify the Murata ANT Switch code.
 - Make the timers more generic and move the OS code into the HAL layer.
+- add support for Arduino - add sx1276-Arduino-hal.h/cpp
+- add support for Linux - add sx1276-Linux-hal.h/cpp
 
 
 
