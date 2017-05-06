@@ -12,6 +12,13 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 
 Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
+
+/*
+ * additional development to make it more generic across multiple os versions
+ * (c) 2017 Helmut Tschemernjak
+ * 30826 Garbsen (Hannover) Germany
+ */
+
 #ifndef __SX1276_HAL_H__
 #define __SX1276_HAL_H__
 #include "sx1276.h"
@@ -44,36 +51,55 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 /*! 
  * Actual implementation of a SX1276 radio, includes some modifications to make it compatible with the MB1 LAS board
  */
-class SX1276MB1xAS : public SX1276
+class SX1276Generic : public SX1276
 {
 protected:
     /*!
      * Antenna switch GPIO pins objects
      */
-    DigitalInOut AntSwitch;
-#ifdef MURATA_ANT_SWITCH
-    DigitalInOut AntSwitchTX;
-    DigitalInOut AntSwitchTXBoost;
-#endif
+    DigitalInOut *_antSwitch;
+    DigitalInOut *_antSwitchTX;
+    DigitalInOut *_antSwitchTXBoost;
 
-    DigitalIn Fake;
+    /*!
+     * SX1276 Reset pin
+     */
+    DigitalInOut *_reset;
+    
+    /*!
+     * TCXO being used with the Murata Module
+     */
+    DigitalOut *_tcxo;
 
+    /*!
+     * SPI Interface
+     */
+    SPI *_spi; // mosi, miso, sclk
+    DigitalOut *_nss;
+    
+    /*!
+     * SX1276 DIO pins
+     */
+    InterruptIn *_dio0;
+    InterruptIn *_dio1;
+    InterruptIn *_dio2;
+    InterruptIn *_dio3;
+    InterruptIn *_dio4;
+    DigitalIn *_dio5;
+    
 private:
     static const RadioRegisters_t RadioRegsInit[];
 
 public:
-    SX1276MB1xAS( RadioEvents_t *events,
+    SX1276Generic( RadioEvents_t *events, BoardType_t board,
             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
-#ifdef MURATA_ANT_SWITCH
-            PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost);
-#else
-            PinName antSwitch );
-#endif
+            PinName antSwitch = NC, PinName antSwitchTX= NC, PinName antSwitchTXBoost = NC, PinName tcxo = NC);
 
-    SX1276MB1xAS( RadioEvents_t *events );
+    
+    SX1276Generic( RadioEvents_t *events );
 
-    virtual ~SX1276MB1xAS( ) { };
+    virtual ~SX1276Generic();
 
 protected:
     /*!

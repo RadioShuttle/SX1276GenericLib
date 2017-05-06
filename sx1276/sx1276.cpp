@@ -12,6 +12,13 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 
 Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
+
+/*
+ * additional development to make it more generic across multiple os versions
+ * (c) 2017 Helmut Tschemernjak
+ * 30826 Garbsen (Hannover) Germany
+ */
+
 #include "sx1276.h"
 
 const FskBandwidth_t SX1276::FskBandwidths[] =
@@ -41,15 +48,7 @@ const FskBandwidth_t SX1276::FskBandwidths[] =
 };
 
 
-SX1276::SX1276( RadioEvents_t *events,
-                PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
-                PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 )
-            :   Radio( events ),
-                spi( mosi, miso, sclk ),
-                nss( nss ),
-                reset( reset ),
-                dio0( dio0 ), dio1( dio1 ), dio2( dio2 ), dio3( dio3 ), dio4( dio4 ), dio5( dio5 ),
-                isRadioActive( false )
+SX1276::SX1276( RadioEvents_t *events) : Radio( events ), isRadioActive( false )
 {
     wait_ms( 10 );
     this->rxtxBuffer = new uint8_t[RX_BUFFER_SIZE];

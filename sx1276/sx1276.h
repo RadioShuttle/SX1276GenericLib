@@ -12,6 +12,13 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 
 Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
+
+/*
+ * additional development to make it more generic across multiple os versions
+ * (c) 2017 Helmut Tschemernjak
+ * 30826 Garbsen (Hannover) Germany
+ */
+
 #ifndef __SX1276_H__
 #define __SX1276_H__
 
@@ -52,11 +59,14 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 
 #define RF_MID_BAND_THRESH                          525000000
 
+#if 0
 #ifdef TARGET_STM32L0
  #define MURATA_ANT_SWITCH	1   // STM B-L072Z-LRWAN1 device
 #elif TARGET_STM32L4
  #define RFM95_MODULE		1	// RFM95 modules are SX1276MB1LAS compatible
 #endif
+#endif
+
 
 typedef enum {
     LORA_BANKWIDTH_7kHz  = 0, //  7.8 kHz requires TCXO
@@ -109,30 +119,10 @@ typedef enum {
 class SX1276 : public Radio
 {
 protected:
-    /*!
-    * SPI Interface
-    */
-    SPI spi; // mosi, miso, sclk
-    DigitalOut nss;
-
-    /*!
-     * SX1276 Reset pin
-     */
-    DigitalInOut reset;
-
-    /*!
-     * SX1276 DIO pins
-     */
-    InterruptIn dio0;
-    InterruptIn dio1;
-    InterruptIn dio2; 
-    InterruptIn dio3;
-    InterruptIn dio4;
-    DigitalIn dio5;
 
     bool isRadioActive;
 
-    uint8_t boardConnected; //1 = SX1276MB1LAS; 0 = SX1276MB1MAS
+    BoardType_t boardConnected; //1 = SX1276MB1LAS; 0 = SX1276MB1MAS
 
     uint8_t *rxtxBuffer;
     
@@ -161,10 +151,7 @@ protected:
     void RxChainCalibration( void );
 
 public:
-    SX1276( RadioEvents_t *events,
-			PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
-			PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5 );
-    SX1276( RadioEvents_t *events );
+    SX1276( RadioEvents_t *events);
     virtual ~SX1276( );
     
     //-------------------------------------------------------------------------

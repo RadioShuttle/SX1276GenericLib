@@ -12,38 +12,79 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 
 Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
+
+/*
+ * additional development to make it more generic across multiple os versions
+ * (c) 2017 Helmut Tschemernjak
+ * 30826 Garbsen (Hannover) Germany
+ */
+
 #include "sx1276-hal.h"
 
-const RadioRegisters_t SX1276MB1xAS::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALUE;
+const RadioRegisters_t SX1276Generic::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALUE;
 
-SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
+SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
-#ifdef MURATA_ANT_SWITCH
-                            PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost )
-#else
-                            PinName antSwitch )
-#endif
-                            : SX1276( events, mosi, miso, sclk, nss, reset, dio0, dio1, dio2, dio3, dio4, dio5 ),
-#ifdef MURATA_ANT_SWITCH
-                            AntSwitch(antSwitch), AntSwitchTX(antSwitchTX), AntSwitchTXBoost(antSwitchTXBoost),
-#else
-                            AntSwitch( antSwitch ),
-#endif
-#if( defined ( TARGET_NUCLEO_L152RE ) )
-                            Fake( D8 )
-#else
-                            Fake( A3 )
-#endif
+                            PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost, PinName tcxo)
+                            : SX1276( events)
 {
     this->RadioEvents = events;
-
+    boardConnected = board;
+    
+    _antSwitch = NULL;
+    _antSwitchTX = NULL;
+    _antSwitchTXBoost = NULL;
+    
+    _tcxo = NULL;
+    if (tcxo != NC)
+        _tcxo = new DigitalOut(tcxo);
+    
+    switch(boardConnected) {
+        case SX1276MB1MAS:
+        case SX1276MB1LAS:
+            _antSwitch = new DigitalInOut(antSwitch);
+            break;
+        case RFM95_SX1276:
+            break;
+        case MURATA_SX1276:
+            _antSwitch = new DigitalInOut(antSwitch);
+            _antSwitchTX = new DigitalInOut(antSwitchTX);
+            _antSwitchTXBoost = new DigitalInOut(antSwitchTXBoost);
+            break;
+        default:
+            break;
+    }
+    _spi = new SPI(mosi, miso, sclk );
+    _nss = new DigitalOut(nss);
+    
+    _reset = new DigitalInOut(reset);
+    
+    _dio0 = NULL;
+    _dio1 = NULL;
+    _dio2 = NULL;
+    _dio3 = NULL;
+    _dio4 = NULL;
+    _dio5 = NULL;
+	if (dio0 != NC)
+        _dio0 = new InterruptIn(dio0);
+    if (dio1 != NC)
+        _dio1 = new InterruptIn(dio1);
+    if (dio2 != NC)
+        _dio2 = new InterruptIn(dio2);
+    if (dio3 != NC)
+        _dio3 = new InterruptIn(dio3);
+    if (dio4 != NC)
+        _dio4 = new InterruptIn(dio4);
+    if (dio5 != NC)
+        _dio5 = new DigitalIn(dio5);
+   
     Reset( );
-
-    RxChainCalibration( );
 
     IoInit( );
 
+    RxChainCalibration( );
+ 
     SetOpMode( RF_OPMODE_SLEEP );
 
     IoIrqInit( dioIrq );
@@ -55,80 +96,54 @@ SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events,
     this->settings.State = RF_IDLE ;
 }
 
-SX1276MB1xAS::SX1276MB1xAS( RadioEvents_t *events )
-                        #if defined ( TARGET_NUCLEO_L152RE )
-                        :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, A3, D9 ), // For NUCLEO L152RE dio4 is on port A3
-                            AntSwitch( A4 ),
-                            Fake( D8 )
-                        #elif defined( TARGET_LPC11U6X )
-                        :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
-                            AntSwitch( P0_23 ),
-                            Fake( A3 )
-                        #else
-                        :   SX1276( events, D11, D12, D13, D10, A0, D2, D3, D4, D5, D8, D9 ),
-#ifdef MURATA_ANT_SWITCH
-                            AntSwitch(A4), AntSwitchTX(NC), AntSwitchTXBoost(NC),
-#else
-                            AntSwitch( A4 ),
-#endif
-                            Fake( A3 )
-                        #endif
+SX1276Generic::~SX1276Generic()
 {
-    this->RadioEvents = events;
-
-    Reset( );
-
-    boardConnected = UNKNOWN;
-
-    DetectBoardType( );
-
-    RxChainCalibration( );
-
-    IoInit( );
-
-    SetOpMode( RF_OPMODE_SLEEP );
-    IoIrqInit( dioIrq );
-
-    RadioRegistersInit( );
-
-    SetModem( MODEM_FSK );
-
-    this->settings.State = RF_IDLE ;
+    if (_antSwitch)
+    	delete _antSwitch;
+    if (_antSwitchTX)
+    	delete _antSwitchTX;
+    if (_antSwitchTXBoost)
+    	delete _antSwitchTXBoost;
+    
+    if (_tcxo) {
+        *_tcxo = 0;
+        delete (_tcxo);
+    }
+    delete _reset;
+    delete _spi;
+    delete _nss;
+    
+    if (_dio0)
+        delete _dio0;
+    if (_dio1)
+    	delete _dio1;
+    if (_dio2)
+        delete _dio2;
+    if (_dio3)
+        delete _dio3;
+    if (_dio4)
+    	delete _dio4;
+    if (_dio5)
+    	delete _dio5;
 }
 
 //-------------------------------------------------------------------------
 //                      Board relative functions
 //-------------------------------------------------------------------------
-uint8_t SX1276MB1xAS::DetectBoardType( void )
+uint8_t SX1276Generic::DetectBoardType( void )
 {
-    if( boardConnected == UNKNOWN )
-    {
-		this->AntSwitch.input( );
-        wait_ms( 1 );
-        if(  this->AntSwitch == 1 )
-        {
-            boardConnected = SX1276MB1LAS;
-        }
-        else
-        {
-            boardConnected = SX1276MB1MAS;
-        }
-         this->AntSwitch.output( );
-        wait_ms( 1 );
-    }
-#ifdef RFM95_MODULE
-    boardConnected = SX1276MB1LAS;
-#endif
-    return ( boardConnected );
+    return boardConnected;
 }
 
-void SX1276MB1xAS::IoInit( void )
+void SX1276Generic::IoInit( void )
 {
+    if (_tcxo)
+        *_tcxo = 1;
     AntSwInit( );
     SpiInit( );
 }
 
-void SX1276MB1xAS::RadioRegistersInit( )
+void SX1276Generic::RadioRegistersInit( )
 {
     uint8_t i = 0;
     for( i = 0; i < sizeof( RadioRegsInit ) / sizeof( RadioRegisters_t ); i++ )
@@ -138,22 +153,20 @@ void SX1276MB1xAS::RadioRegistersInit( )
     }    
 }
 
-void SX1276MB1xAS::SpiInit( void )
+void SX1276Generic::SpiInit( void )
 {
-    nss = 1;    
-    spi.format( 8,0 );   
+    *_nss = 1;
+    _spi->format( 8,0 );
     uint32_t frequencyToSet = 8000000;
-    #if( defined ( TARGET_NUCLEO_L152RE ) || defined ( TARGET_LPC11U6X ) || defined(TARGET_STM) )
-        spi.frequency( frequencyToSet );
-    #elif( defined ( TARGET_KL25Z ) ) //busclock frequency is halved -> double the spi frequency to compensate
-        spi.frequency( frequencyToSet * 2 );
-    #else
-        #warning "Check the board's SPI frequency"
-    #endif
-    wait(0.1); 
+#ifdef TARGET_KL25Z	//busclock frequency is halved -> double the spi frequency to compensate
+    _spi->frequency( frequencyToSet * 2 );
+#else
+    _spi->frequency( frequencyToSet );
+#endif
+    wait_ms(100);
 }
 
-void SX1276MB1xAS::IoIrqInit( DioIrqHandler *irqHandlers )
+void SX1276Generic::IoIrqInit( DioIrqHandler *irqHandlers )
 {
 #if( defined ( TARGET_NUCLEO_L152RE ) || defined ( TARGET_LPC11U6X ) )
     dio0.mode( PullDown );
@@ -162,19 +175,24 @@ void SX1276MB1xAS::IoIrqInit( DioIrqHandler *irqHandlers )
     dio3.mode( PullDown );
     dio4.mode( PullDown );
 #endif
-    dio0.rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[0] )));
-    dio1.rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[1] )));
-    dio2.rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[2] )));
-    dio3.rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[3] )));
-    dio4.rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[4] )));
+    if (_dio0)
+    	_dio0->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[0] )));
+    if (_dio1)
+    	_dio1->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[1] )));
+    if (_dio2)
+    	_dio2->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[2] )));
+    if (_dio3)
+    	_dio3->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[3] )));
+    if (_dio4)
+        _dio4->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[4] )));
 }
 
-void SX1276MB1xAS::IoDeInit( void )
+void SX1276Generic::IoDeInit( void )
 {
     //nothing
 }
 
-void SX1276MB1xAS::SetRfTxPower( int8_t power )
+void SX1276Generic::SetRfTxPower( int8_t power )
 {
     uint8_t paConfig = 0;
     uint8_t paDac = 0;
@@ -237,11 +255,11 @@ void SX1276MB1xAS::SetRfTxPower( int8_t power )
 }
 
 
-uint8_t SX1276MB1xAS::GetPaSelect( uint32_t channel )
+uint8_t SX1276Generic::GetPaSelect( uint32_t channel )
 {
     if( channel > RF_MID_BAND_THRESH )
     {
-        if( boardConnected == SX1276MB1LAS )
+        if( boardConnected == SX1276MB1LAS || boardConnected == RFM95_SX1276)
         {
             return RF_PACONFIG_PASELECT_PABOOST;
         }
@@ -256,7 +274,7 @@ uint8_t SX1276MB1xAS::GetPaSelect( uint32_t channel )
     }
 }
 
-void SX1276MB1xAS::SetAntSwLowPower( bool status )
+void SX1276Generic::SetAntSwLowPower( bool status )
 {
     if( isRadioActive != status )
     {
@@ -273,119 +291,125 @@ void SX1276MB1xAS::SetAntSwLowPower( bool status )
     }
 }
 
-void SX1276MB1xAS::AntSwInit( void )
+void SX1276Generic::AntSwInit( void )
 {
-    this->AntSwitch = 0;
-#ifdef MURATA_ANT_SWITCH
-    AntSwitchTX = 0;
-    AntSwitchTXBoost = 0;
-#endif
+    if (_antSwitch)
+    	*_antSwitch = 0;
+    if (boardConnected == MURATA_SX1276) {
+    	*_antSwitchTX = 0;
+		*_antSwitchTXBoost = 0;
+    }
 }
 
-void SX1276MB1xAS::AntSwDeInit( void )
+void SX1276Generic::AntSwDeInit( void )
 {
-    this->AntSwitch = 0;
-#ifdef MURATA_ANT_SWITCH
-    AntSwitchTX = 0;
-    AntSwitchTXBoost = 0;
-#endif
+    if (_antSwitch)
+    	*_antSwitch = 0;
+    if (boardConnected == MURATA_SX1276) {
+        *_antSwitchTX = 0;
+    	*_antSwitchTXBoost = 0;
+    }
 }
 
 
-void SX1276MB1xAS::SetAntSw( uint8_t opMode )
+void SX1276Generic::SetAntSw( uint8_t opMode )
 {
     switch( opMode )
     {
         case RFLR_OPMODE_TRANSMITTER:
-#ifdef MURATA_ANT_SWITCH
-            this->AntSwitch = 0;  // Murata-RX
-            AntSwitchTX = 1; // alternate: antSwitchTXBoost = 1
-#else
-        	this->AntSwitch = 1;
-#endif
+            if (boardConnected == MURATA_SX1276) {
+	            *_antSwitch = 0;// Murata-RX
+	            *_antSwitchTX = 1; 	// alternate: antSwitchTXBoost = 1
+    		} else {
+                if (_antSwitch)
+	        		*_antSwitch = 1;
+			}
             break;
         case RFLR_OPMODE_RECEIVER:
         case RFLR_OPMODE_RECEIVER_SINGLE:
         case RFLR_OPMODE_CAD:
-#ifdef MURATA_ANT_SWITCH
-            this->AntSwitch = 1;  // Murata-RX
-            AntSwitchTX = 0;
-            AntSwitchTXBoost = 0;
-#else
-        	this->AntSwitch = 0;
-#endif
+            if (boardConnected == MURATA_SX1276) {
+                *_antSwitch = 1;  // Murata-RX
+            	*_antSwitchTX = 0;
+            	*_antSwitchTXBoost = 0;
+            } else {
+                if (_antSwitch)
+        			_antSwitch = 0;
+            }
             break;
         default:
-#ifdef MURATA_ANT_SWITCH
-            this->AntSwitch = 1;  //Murata-RX
-            AntSwitchTX = 0;
-            AntSwitchTXBoost = 0;
-#else
-            this->AntSwitch = 0;
-#endif
+            if (boardConnected == MURATA_SX1276) {
+                *_antSwitch = 0;  //Murata-RX
+            	*_antSwitchTX = 0;
+            	*_antSwitchTXBoost = 0;
+            } else {
+                if (_antSwitch)
+        			*_antSwitch = 0;
+            }
             break;
     }
 }
 
-bool SX1276MB1xAS::CheckRfFrequency( uint32_t frequency )
+bool SX1276Generic::CheckRfFrequency( uint32_t frequency )
 {
     // Implement check. Currently all frequencies are supported
     return true;
 }
 
-void SX1276MB1xAS::Reset( void )
+void SX1276Generic::Reset( void )
 {
-	reset.output();
-	reset = 0;
+	_reset->output();
+	*_reset = 0;
 	wait_ms( 1 );
-	reset.input();
+    *_reset = 1;
+    _reset->input();	// I don't know my input again, maybe to save power (Helmut T)
 	wait_ms( 6 );
 }
 
-void SX1276MB1xAS::Write( uint8_t addr, uint8_t data )
+void SX1276Generic::Write( uint8_t addr, uint8_t data )
 {
     Write( addr, &data, 1 );
 }
 
-uint8_t SX1276MB1xAS::Read( uint8_t addr )
+uint8_t SX1276Generic::Read( uint8_t addr )
 {
     uint8_t data;
     Read( addr, &data, 1 );
     return data;
 }
 
-void SX1276MB1xAS::Write( uint8_t addr, uint8_t *buffer, uint8_t size )
+void SX1276Generic::Write( uint8_t addr, uint8_t *buffer, uint8_t size )
 {
     uint8_t i;
 
-    nss = 0;
-    spi.write( addr | 0x80 );
+    *_nss = 0; // what about SPI hold/release timing on fast MCUs? Helmut
+    _spi->write( addr | 0x80 );
     for( i = 0; i < size; i++ )
     {
-        spi.write( buffer[i] );
+        _spi->write( buffer[i] );
     }
-    nss = 1;
+    *_nss = 1;
 }
 
-void SX1276MB1xAS::Read( uint8_t addr, uint8_t *buffer, uint8_t size )
+void SX1276Generic::Read( uint8_t addr, uint8_t *buffer, uint8_t size )
 {
     uint8_t i;
 
-    nss = 0;
-    spi.write( addr & 0x7F );
+    *_nss = 0; // what about SPI hold/release timing on fast MCUs? Helmut
+    _spi->write( addr & 0x7F );
     for( i = 0; i < size; i++ )
     {
-        buffer[i] = spi.write( 0 );
+        buffer[i] = _spi->write( 0 );
     }
-    nss = 1;
+    *_nss = 1;
 }
 
-void SX1276MB1xAS::WriteFifo( uint8_t *buffer, uint8_t size )
+void SX1276Generic::WriteFifo( uint8_t *buffer, uint8_t size )
 {
     Write( 0, buffer, size );
 }
 
-void SX1276MB1xAS::ReadFifo( uint8_t *buffer, uint8_t size )
+void SX1276Generic::ReadFifo( uint8_t *buffer, uint8_t size )
 {
     Read( 0, buffer, size );
 }
