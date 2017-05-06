@@ -19,7 +19,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  * 30826 Garbsen (Hannover) Germany
  */
 
-#include "sx1276-hal.h"
+#include "sx1276-mbed-hal.h"
 
 const RadioRegisters_t SX1276Generic::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALUE;
 
