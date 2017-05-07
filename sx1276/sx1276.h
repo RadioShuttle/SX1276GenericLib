@@ -26,9 +26,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "./registers/sx1276Regs-Fsk.h"
 #include "./registers/sx1276Regs-LoRa.h"
 
-class SX1276;
-class SX1276Generic;
-
 
 
 /*!
@@ -63,13 +60,6 @@ class SX1276Generic;
 
 #define RF_MID_BAND_THRESH                          525000000
 
-#if 0
-#ifdef TARGET_STM32L0
- #define MURATA_ANT_SWITCH	1   // STM B-L072Z-LRWAN1 device
-#elif TARGET_STM32L4
- #define RFM95_MODULE		1	// RFM95 modules are SX1276MB1LAS compatible
-#endif
-#endif
 
 
 /*!
@@ -82,7 +72,6 @@ typedef struct
 }FskBandwidth_t;
 
 
-
 /*!
  * Radio registers definition
  */
@@ -93,10 +82,25 @@ typedef struct
     uint8_t     Value;
 }RadioRegisters_t;
 
+
+typedef enum {
+    RXTimeout,
+    TXTimeout,
+    RXTimeoutSyncWorld
+} Timeout_t;
+
 /*!
- * Hardware IO IRQ callback function definition
+ * Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
  */
-typedef void ( SX1276::*DioIrqHandler )( void );
+typedef enum BoardType
+{
+    SX1276MB1MAS = 0,
+    SX1276MB1LAS,
+    RFM95_SX1276,
+    MURATA_SX1276,
+    UNKNOWN
+}BoardType_t;
+
 
 
 typedef enum {
@@ -158,9 +162,15 @@ protected:
     uint8_t *rxtxBuffer;
     
     /*!
+     * Hardware IO IRQ callback function definition
+     */
+    typedef void ( SX1276::*DioIrqHandler )( void );
+
+    /*!
      * Hardware DIO IRQ functions
      */
     DioIrqHandler *dioIrq;
+
 
     /*!
      * Tx and Rx timers
@@ -474,6 +484,7 @@ public:
     //-------------------------------------------------------------------------
     //                        Board relative functions
     //-------------------------------------------------------------------------
+
     static const RadioRegisters_t RadioRegsInit[];
 private:
     

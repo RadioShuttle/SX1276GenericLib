@@ -1,32 +1,26 @@
 
-Tasks we needs to be done. (move finished tasks to Done: with you name & date)
+Tasks we needs to be done.
+Move finished tasks to Done section:
+
 - Check of the MURATA TCXO config is correct
 - What needs to e done in the MURATA PA_BOOST case
 - Verify the Murata ANT Switch code.
 - Make the timers more generic and move the OS code into the HAL layer.
 - add support for Arduino - add sx1276-Arduino-hal.h/cpp
 - add support for Linux - add sx1276-Linux-hal.h/cpp
-
-- Migrate enum code into sx1276.h
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Add support for Cad detection before sending a packet
+- Add support to provide the send/receive packet buffer,
+  no need to allocate packet data in the sx1276 driver. Can be provided
+  Rx/Tx parameters.
+- Add support for larger Lora packets (can be up to 2048 bytes)
+  this feature is not so important, however the current implementation
+  is very basic.
 
 
 
 
 Done:
-- Started a Generic SX1276 drive to support multiple SX1276 based modules (May-2017 Helmut Tsch)
-- Migrated typedefs code into sx1276.h (7-May-2017 Helmut Tsch)
+- Started a Generic SX1276 driver to support all SX1276 modules (May-2017 Helmut)
+- Migrated typedefs code into sx1276.h (7-May-2017 Helmut)
+- Migrated enum code into sx1276.h/radio.h (7-May-2017 Helmut)
 

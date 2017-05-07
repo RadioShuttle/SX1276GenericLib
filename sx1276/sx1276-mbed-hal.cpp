@@ -168,15 +168,15 @@ void SX1276Generic::IoIrqInit( DioIrqHandler *irqHandlers )
     dio4.mode( PullDown );
 #endif
     if (_dio0)
-    	_dio0->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[0] )));
+    	_dio0->rise(callback(this, static_cast< Trigger > ( irqHandlers[0] )));
     if (_dio1)
-    	_dio1->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[1] )));
+    	_dio1->rise(callback(this, static_cast< Trigger > ( irqHandlers[1] )));
     if (_dio2)
-    	_dio2->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[2] )));
+    	_dio2->rise(callback(this, static_cast< Trigger > ( irqHandlers[2] )));
     if (_dio3)
-    	_dio3->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[3] )));
+    	_dio3->rise(callback(this, static_cast< Trigger > ( irqHandlers[3] )));
     if (_dio4)
-        _dio4->rise(callback(this, static_cast< TriggerMB1xAS > ( irqHandlers[4] )));
+        _dio4->rise(callback(this, static_cast< Trigger > ( irqHandlers[4] )));
 }
 
 void SX1276Generic::IoDeInit( void )

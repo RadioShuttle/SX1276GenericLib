@@ -19,16 +19,10 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  * 30826 Garbsen (Hannover) Germany
  */
 
-#ifndef __SX1276_HAL_H__
-#define __SX1276_HAL_H__
+#ifndef __SX1276_MBED_HAL_H__
+#define __SX1276_MBED_HAL_H__
 #include "sx1276.h"
 
-
-/*!
- * triggers definition
- */
-typedef void ( SX1276::*Trigger )( void );
-typedef void ( SX1276Generic::*TriggerMB1xAS )( void );
 
 
 /*!
@@ -74,6 +68,11 @@ protected:
     
     
 private:
+    /*!
+     * triggers definition
+     */
+    typedef void (SX1276Generic::*Trigger)(void);
+
 
 public:
     SX1276Generic( RadioEvents_t *events, BoardType_t board,
@@ -230,4 +229,4 @@ public:
     virtual void Reset( void );
 };
 
-#endif // __SX1276_HAL_H__
+#endif // __SX1276_MBED_HAL_H__
