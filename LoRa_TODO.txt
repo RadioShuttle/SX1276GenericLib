@@ -7,6 +7,8 @@ Tasks we needs to be done. (move finished tasks to Done: with you name & date)
 - add support for Arduino - add sx1276-Arduino-hal.h/cpp
 - add support for Linux - add sx1276-Linux-hal.h/cpp
 
+- Migrate enum code into sx1276.h
+
 
 
 
@@ -25,4 +27,6 @@ Tasks we needs to be done. (move finished tasks to Done: with you name & date)
 
 
 Done:
-- Started a Generic SX1276 drive to support multiple SX1276 based modules (My-2017 Helmut Tsch)
+- Started a Generic SX1276 drive to support multiple SX1276 based modules (May-2017 Helmut Tsch)
+- Migrated typedefs code into sx1276.h (7-May-2017 Helmut Tsch)
+

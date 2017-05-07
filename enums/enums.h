@@ -113,7 +113,7 @@ typedef struct
     int8_t SnrValue;
     int8_t RssiValue;
     uint8_t Size;
-}RadioLoRaPacketHandler_t;
+ }RadioLoRaPacketHandler_t;
 
 /*!
  * Radio Settings
@@ -128,6 +128,12 @@ typedef struct
     RadioLoRaSettings_t      LoRa;
     RadioLoRaPacketHandler_t LoRaPacketHandler;
 }RadioSettings_t;
+
+typedef enum {
+    RXTimeout,
+    TXTimeout,
+    RXTimeoutSyncWorld
+} Timeout_t;
 
 
 #endif //__ENUMS_H__

@@ -14,7 +14,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 
 /*
- * additional development to make it more generic across multiple os versions
+ * additional development to make it more generic across multiple OS versions
  * (c) 2017 Helmut Tschemernjak
  * 30826 Garbsen (Hannover) Germany
  */
@@ -25,7 +25,11 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "radio.h"
 #include "./registers/sx1276Regs-Fsk.h"
 #include "./registers/sx1276Regs-LoRa.h"
-#include "./typedefs/typedefs.h"
+
+class SX1276;
+class SX1276Generic;
+
+
 
 /*!
  * Radio wake-up time from sleep
@@ -66,6 +70,33 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  #define RFM95_MODULE		1	// RFM95 modules are SX1276MB1LAS compatible
 #endif
 #endif
+
+
+/*!
+ * FSK bandwidth definition
+ */
+typedef struct
+{
+    uint32_t bandwidth;
+    uint8_t  RegValue;
+}FskBandwidth_t;
+
+
+
+/*!
+ * Radio registers definition
+ */
+typedef struct
+{
+    ModemType   Modem;
+    uint8_t     Addr;
+    uint8_t     Value;
+}RadioRegisters_t;
+
+/*!
+ * Hardware IO IRQ callback function definition
+ */
+typedef void ( SX1276::*DioIrqHandler )( void );
 
 
 typedef enum {
@@ -141,6 +172,7 @@ protected:
     RadioSettings_t settings;
 
     static const FskBandwidth_t FskBandwidths[];
+    
 protected:
 
     /*!
@@ -163,6 +195,12 @@ public:
      * @param [IN] events Structure containing the driver callback functions
      */
     virtual void Init( RadioEvents_t *events );
+
+    /*!
+     *  @brief Initializes the radio registers
+     */
+    virtual void RadioRegistersInit(void);
+
     /*!
      * Return current radio status
      *
@@ -285,6 +323,7 @@ public:
                               bool fixLen, bool crcOn, bool freqHopOn,
                               uint8_t hopPeriod, bool iqInverted, uint32_t timeout );
 
+    
     /*!
      * @brief Checks if the given RF frequency is supported by the hardware
      *
@@ -435,17 +474,14 @@ public:
     //-------------------------------------------------------------------------
     //                        Board relative functions
     //-------------------------------------------------------------------------
-
+    static const RadioRegisters_t RadioRegsInit[];
+private:
+    
 protected:
     /*!
      * @brief Initializes the radio I/Os pins interface
      */
     virtual void IoInit( void ) = 0;
-    
-    /*!
-     *    @brief Initializes the radio registers
-     */
-    virtual void RadioRegistersInit( ) = 0;
     
     /*!
      * @brief Initializes the radio SPI
@@ -508,6 +544,12 @@ protected:
      * @param [IN] opMode Current radio operating mode
      */
     virtual void SetAntSw( uint8_t opMode ) = 0;
+    
+    /*
+     * The the Timeout for a given Timer.
+     */
+    virtual void SetTimeout(Timeout_t timer, int timeout_ms) = 0;
+    
     
 protected:
 

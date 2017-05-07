@@ -14,14 +14,14 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 */
 
 /*
- * additional development to make it more generic across multiple os versions
+ * additional development to make it more generic across multiple OS versions
  * (c) 2017 Helmut Tschemernjak
  * 30826 Garbsen (Hannover) Germany
  */
 
 #include "sx1276-mbed-hal.h"
 
-const RadioRegisters_t SX1276Generic::RadioRegsInit[] = RADIO_INIT_REGISTERS_VALUE;
+
 
 SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
                             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
@@ -127,6 +127,7 @@ SX1276Generic::~SX1276Generic()
     	delete _dio5;
 }
 
+
 //-------------------------------------------------------------------------
 //                      Board relative functions
 //-------------------------------------------------------------------------
@@ -143,15 +144,6 @@ void SX1276Generic::IoInit( void )
     SpiInit( );
 }
 
-void SX1276Generic::RadioRegistersInit( )
-{
-    uint8_t i = 0;
-    for( i = 0; i < sizeof( RadioRegsInit ) / sizeof( RadioRegisters_t ); i++ )
-    {
-        SetModem( RadioRegsInit[i].Modem );
-        Write( RadioRegsInit[i].Addr, RadioRegsInit[i].Value );
-    }    
-}
 
 void SX1276Generic::SpiInit( void )
 {
@@ -349,6 +341,11 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
             }
             break;
     }
+}
+
+void SX1276Generic::SetTimeout(Timeout_t timer, int timeout_ms)
+{
+    
 }
 
 bool SX1276Generic::CheckRfFrequency( uint32_t frequency )
