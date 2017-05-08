@@ -3,8 +3,6 @@ Tasks we needs to be done.
 Move finished tasks to Done section:
 
 - Check of the MURATA TCXO config is correct
-- What needs to e done in the MURATA PA_BOOST case
-- Verify the Murata ANT Switch code.
 - Make the timers more generic and move the OS code into the HAL layer.
 - add support for Arduino - add sx1276-Arduino-hal.h/cpp
 - add support for Linux - add sx1276-Linux-hal.h/cpp
@@ -18,9 +16,10 @@ Move finished tasks to Done section:
 
 
 
-
 Done:
 - Started a Generic SX1276 driver to support all SX1276 modules (May-2017 Helmut)
 - Migrated typedefs code into sx1276.h (7-May-2017 Helmut)
 - Migrated enum code into sx1276.h/radio.h (7-May-2017 Helmut)
+- Verify the Murata ANT Switch code
+- MURATA PA_BOOST case,is _antSwitchTXBoost right? (Same as STM sample code)
 

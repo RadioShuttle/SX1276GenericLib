@@ -311,8 +311,10 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
         case RFLR_OPMODE_TRANSMITTER:
             if (boardConnected == MURATA_SX1276) {
 	            *_antSwitch = 0;// Murata-RX
-	            *_antSwitchTX = 1; 	// alternate: antSwitchTXBoost = 1
-                *_antSwitchTXBoost = 0;
+                if (Read( REG_PACONFIG) & RF_PACONFIG_PASELECT_PABOOST)
+                    *_antSwitchTXBoost = 1;
+            	else
+               		*_antSwitchTX = 1; 	// alternate: antSwitchTXBoost = 1
             } else {
                 if (_antSwitch)
 	        		*_antSwitch = 1;
@@ -330,6 +332,8 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
         			_antSwitch = 0;
             }
             break;
+        case RFLR_OPMODE_SLEEP:
+        case RFLR_OPMODE_STANDBY:
         default:
             if (boardConnected == MURATA_SX1276) {
                 *_antSwitch = 0;  //Murata-RX
