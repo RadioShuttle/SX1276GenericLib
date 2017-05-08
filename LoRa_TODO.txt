@@ -13,6 +13,9 @@ Move finished tasks to Done section:
 - Add support for larger Lora packets (can be up to 2048 bytes)
   this feature is not so important, however the current implementation
   is very basic.
+- It is a little bit strange that RX/TX/Cad Timeout Timer calling the
+  some handler OnTimeoutIrq. Maybe we just need a single timer, or 
+  it is a good idea to split the OnTimeoutIrq function
 
 
 

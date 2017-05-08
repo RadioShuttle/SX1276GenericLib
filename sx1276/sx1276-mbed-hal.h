@@ -64,7 +64,12 @@ protected:
     InterruptIn *_dio4;
     DigitalIn *_dio5;
     
+    /*!
+     * Tx and Rx timers
+     */
     Timeout txTimeoutTimer;
+    Timeout rxTimeoutTimer;
+    Timeout rxTimeoutSyncWord;
     
     
 private:
@@ -156,7 +161,7 @@ protected:
     /*
      * The the Timeout for a given Timer.
      */
-    virtual void SetTimeout(Timeout_t timer, int timeout_ms);
+	virtual void SetTimeout(TimeoutTimer_t timer, int timeout_ms);
 
 public:
     

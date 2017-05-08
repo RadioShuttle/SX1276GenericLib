@@ -347,9 +347,30 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
     }
 }
 
-void SX1276Generic::SetTimeout(Timeout_t timer, int timeout_ms)
+void SX1276Generic::SetTimeout(TimeoutTimer_t timer, int timeout_ms)
 {
-    
+    SX1276 *sx = this;
+    switch(timer) {
+	    case RXTimeoutTimer:
+            if (timeout_ms)
+                rxTimeoutTimer.attach_us(callback(sx, &SX1276::OnTimeoutIrq), timeout_ms);
+            else
+                rxTimeoutTimer.detach();
+            break;
+        case TXTimeoutTimer:
+            if (timeout_ms)
+                txTimeoutTimer.attach_us(callback(sx, &SX1276::OnTimeoutIrq), timeout_ms);
+            else
+                txTimeoutTimer.detach();
+            break;
+        case RXTimeoutSyncWorldTimer:
+            if (timeout_ms)
+                rxTimeoutSyncWord.attach_us(callback(sx, &SX1276::OnTimeoutIrq), timeout_ms);
+            else
+                rxTimeoutSyncWord.detach();
+            break;
+        break;
+    }
 }
 
 bool SX1276Generic::CheckRfFrequency( uint32_t frequency )

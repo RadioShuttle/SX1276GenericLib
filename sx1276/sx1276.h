@@ -83,12 +83,6 @@ typedef struct
 }RadioRegisters_t;
 
 
-typedef enum {
-    RXTimeout,
-    TXTimeout,
-    RXTimeoutSyncWorld
-} Timeout_t;
-
 /*!
  * Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
  */
@@ -486,8 +480,14 @@ public:
     //-------------------------------------------------------------------------
 
     static const RadioRegisters_t RadioRegsInit[];
-private:
-    
+
+    typedef enum {
+        RXTimeoutTimer,
+        TXTimeoutTimer,
+        RXTimeoutSyncWorldTimer
+    } TimeoutTimer_t;
+
+
 protected:
     /*!
      * @brief Initializes the radio I/Os pins interface
@@ -559,9 +559,8 @@ protected:
     /*
      * The the Timeout for a given Timer.
      */
-    virtual void SetTimeout(Timeout_t timer, int timeout_ms) = 0;
-    
-    
+    virtual void SetTimeout(TimeoutTimer_t timer, int timeout_ms) = 0;
+
 protected:
 
     /*!
@@ -606,17 +605,18 @@ protected:
     virtual void OnDio5Irq( void );
 
     /*!
-     * @brief Tx & Rx timeout timer callback
-     */
-    virtual void OnTimeoutIrq( void );
-
-    /*!
      * Returns the known FSK bandwidth registers value
      *
      * \param [IN] bandwidth Bandwidth value in Hz
      * \retval regValue Bandwidth register value.
      */
     static uint8_t GetFskBandwidthRegValue( uint32_t bandwidth );
+    
+public:
+    /*!
+     * @brief Tx & Rx timeout timer callback
+     */
+    virtual void OnTimeoutIrq( void );
 };
 
 #endif // __SX1276_H__
