@@ -368,7 +368,6 @@ void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int ti
             else
                 rxTimeoutSyncWord.detach();
             break;
-        break;
     }
 }
 
