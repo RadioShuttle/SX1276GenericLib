@@ -556,10 +556,13 @@ protected:
      */
     virtual void SetAntSw( uint8_t opMode ) = 0;
     
+    typedef void ( SX1276::*timeoutFuncPtr)( void );
+    
+    
     /*
      * The the Timeout for a given Timer.
      */
-    virtual void SetTimeout(TimeoutTimer_t timer, int timeout_ms) = 0;
+    virtual void SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr, int timeout_ms = 0) = 0;
 
 protected:
 
@@ -605,18 +608,17 @@ protected:
     virtual void OnDio5Irq( void );
 
     /*!
+     * @brief Tx & Rx timeout timer callback
+     */
+    virtual void OnTimeoutIrq( void );
+
+    /*!
      * Returns the known FSK bandwidth registers value
      *
      * \param [IN] bandwidth Bandwidth value in Hz
      * \retval regValue Bandwidth register value.
      */
     static uint8_t GetFskBandwidthRegValue( uint32_t bandwidth );
-    
-public:
-    /*!
-     * @brief Tx & Rx timeout timer callback
-     */
-    virtual void OnTimeoutIrq( void );
 };
 
 #endif // __SX1276_H__

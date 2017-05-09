@@ -709,8 +709,8 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
 
 void SX1276::Sleep( void )
 {
-    SetTimeout(TXTimeoutTimer, 0);
-    SetTimeout(RXTimeoutTimer, 0);
+    SetTimeout(TXTimeoutTimer, NULL);
+    SetTimeout(RXTimeoutTimer, NULL);
 
     SetOpMode( RF_OPMODE_SLEEP );
     this->settings.State = RF_IDLE;
@@ -718,8 +718,8 @@ void SX1276::Sleep( void )
 
 void SX1276::Standby( void )
 {
-    SetTimeout(TXTimeoutTimer, 0);
-    SetTimeout(RXTimeoutTimer, 0);
+    SetTimeout(TXTimeoutTimer, NULL);
+    SetTimeout(RXTimeoutTimer, NULL);
 
     SetOpMode( RF_OPMODE_STANDBY );
     this->settings.State = RF_IDLE;
@@ -864,7 +864,7 @@ void SX1276::Rx( uint32_t timeout )
     this->settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
     {
-        SetTimeout(RXTimeoutTimer, timeout * 1e3 );
+        SetTimeout(RXTimeoutTimer, &SX1276::OnTimeoutIrq, timeout * 1e3);
     }
 
     if( this->settings.Modem == MODEM_FSK )
@@ -873,7 +873,7 @@ void SX1276::Rx( uint32_t timeout )
 
         if( rxContinuous == false )
         {
-            SetTimeout(RXTimeoutSyncWorldTimer, this->settings.Fsk.RxSingleTimeout * 1e3);
+            SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
         }
     }
     else
@@ -947,7 +947,7 @@ void SX1276::Tx( uint32_t timeout )
     }
 
     this->settings.State = RF_TX_RUNNING;
-    SetTimeout(TXTimeoutTimer,  timeout * 1e3);
+    SetTimeout(TXTimeoutTimer, &SX1276::OnTimeoutIrq, timeout * 1e3);
     SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
@@ -998,7 +998,7 @@ void SX1276::SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time )
     Write( REG_DIOMAPPING2, RF_DIOMAPPING2_DIO4_10 | RF_DIOMAPPING2_DIO5_10 );
     
     this->settings.State = RF_TX_RUNNING;
-    SetTimeout(TXTimeoutTimer, timeout);
+    SetTimeout(TXTimeoutTimer, &SX1276::OnTimeoutIrq, timeout);
     SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
@@ -1136,12 +1136,12 @@ void SX1276::OnTimeoutIrq( void )
             {
                 // Continuous mode restart Rx chain
                 Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                SetTimeout(RXTimeoutSyncWorldTimer, this->settings.Fsk.RxSingleTimeout * 1e3);
+                SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
             }
             else
             {
                 this->settings.State = RF_IDLE;
-                SetTimeout(RXTimeoutSyncWorldTimer, 0);
+                SetTimeout(RXTimeoutSyncWorldTimer, NULL);
             }
         }
         if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxTimeout != NULL ) )
@@ -1208,18 +1208,18 @@ void SX1276::OnDio0Irq( void )
                                                     RF_IRQFLAGS1_SYNCADDRESSMATCH );
                         Write( REG_IRQFLAGS2, RF_IRQFLAGS2_FIFOOVERRUN );
 
-                        SetTimeout(RXTimeoutTimer, 0);
+                        SetTimeout(RXTimeoutTimer, NULL);
 
                         if( this->settings.Fsk.RxContinuous == false )
                         {
-                            SetTimeout(RXTimeoutSyncWorldTimer, 0);
+                            SetTimeout(RXTimeoutSyncWorldTimer, NULL);
                             this->settings.State = RF_IDLE;
                         }
                         else
                         {
                             // Continuous mode restart Rx chain
                             Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                            SetTimeout(RXTimeoutSyncWorldTimer, this->settings.Fsk.RxSingleTimeout * 1e3);
+                            SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
                         }
 
                         if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxError != NULL ) )
@@ -1254,18 +1254,18 @@ void SX1276::OnDio0Irq( void )
                     this->settings.FskPacketHandler.NbBytes += ( this->settings.FskPacketHandler.Size - this->settings.FskPacketHandler.NbBytes );
                 }
 
-                SetTimeout(RXTimeoutTimer, 0);
+                SetTimeout(RXTimeoutTimer, NULL);
                     
                 if( this->settings.Fsk.RxContinuous == false )
                 {
                     this->settings.State = RF_IDLE;
-                    SetTimeout(RXTimeoutSyncWorldTimer, 0);
+                    SetTimeout(RXTimeoutSyncWorldTimer, NULL);
                 }
                 else
                 {
                     // Continuous mode restart Rx chain
                     Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                    SetTimeout(RXTimeoutSyncWorldTimer, this->settings.Fsk.RxSingleTimeout * 1e3);
+                    SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
 				}
 
                 if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxDone != NULL ) )
@@ -1294,7 +1294,7 @@ void SX1276::OnDio0Irq( void )
                         {
                             this->settings.State = RF_IDLE;
                         }
-                        SetTimeout(RXTimeoutTimer, 0);
+                        SetTimeout(RXTimeoutTimer, NULL);
                         
                         if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxError != NULL ) )
                         {
@@ -1349,7 +1349,7 @@ void SX1276::OnDio0Irq( void )
                     {
                         this->settings.State = RF_IDLE;
                     }
-                    SetTimeout(RXTimeoutTimer, 0);
+                    SetTimeout(RXTimeoutTimer, NULL);
                     
                     if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxDone != NULL ) )
                     {
@@ -1362,7 +1362,7 @@ void SX1276::OnDio0Irq( void )
             }
             break;
         case RF_TX_RUNNING:
-            SetTimeout(TXTimeoutTimer, 0);
+            SetTimeout(TXTimeoutTimer, NULL);
             // TxDone interrupt
             switch( this->settings.Modem )
             {
@@ -1420,7 +1420,7 @@ void SX1276::OnDio1Irq( void )
                 break;
             case MODEM_LORA:
                 // Sync time out
-                SetTimeout(RXTimeoutTimer, 0);
+                SetTimeout(RXTimeoutTimer, NULL);
                 // Clear Irq
 				Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXTIMEOUT );
 
@@ -1478,7 +1478,7 @@ void SX1276::OnDio2Irq( void )
 
                 if( ( this->settings.FskPacketHandler.PreambleDetected == true ) && ( this->settings.FskPacketHandler.SyncWordDetected == false ) )
                 {
-                    SetTimeout(RXTimeoutSyncWorldTimer, 0);
+                    SetTimeout(RXTimeoutSyncWorldTimer, NULL);
                     
                     this->settings.FskPacketHandler.SyncWordDetected = true;
 

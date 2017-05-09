@@ -161,7 +161,7 @@ protected:
     /*
      * The the Timeout for a given Timer.
      */
-	virtual void SetTimeout(TimeoutTimer_t timer, int timeout_ms);
+	virtual void SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr, int timeout_ms = 0);
 
 public:
     
