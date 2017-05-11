@@ -1,22 +1,22 @@
 
-Tasks we needs to be done.
 Move finished tasks to Done section:
 
-- Make the timers more generic and move the OS code into the HAL layer.
+TODOs:
 - add support for Arduino - add sx1276-Arduino-hal.h/cpp
 - add support for Linux - add sx1276-Linux-hal.h/cpp
 - Add support for Cad detection before sending a packet
 - Add support to provide the send/receive packet buffer,
   no need to allocate packet data in the sx1276 driver. Can be provided
-  Rx/Tx parameters.
+  Rx/Tx parameters, this avoids double memory usage
 - Add support for larger Lora packets (can be up to 2048 bytes)
   this feature is not so important, however the current implementation
   is very basic.
 - It is a little bit strange that RX/TX/Cad Timeout Timer calling the
   some handler OnTimeoutIrq. Maybe we just need a single timer, or 
-  it is a good idea to split the OnTimeoutIrq function
-- Test if the SX1276 timeouts (rx(tx/sync really uses three timers or
-  just one at a time.
+  it is a good idea to split the OnTimeoutIrq function into separate
+  callbacks for RX/TX/Cad timeouts
+- Test if the SX1276 timeouts. Does rx/tx/sync really uses three different
+  timers or just one at a time.
 
 
 Done:
@@ -26,3 +26,5 @@ Done:
 - Verify the Murata ANT Switch code
 - MURATA PA_BOOST case,is _antSwitchTXBoost right? (Same as STM sample code)
 - Check of the MURATA TCXO config is correct (implemented, check JP9 on STM L0 board)
+- Make the timers more generic and move the OS code into the HAL layer. (May Helmut)
+- Removed pull down on dio=-dio5 for L151 &LPC11U6X which make no sense to me. May 2017 Helmut

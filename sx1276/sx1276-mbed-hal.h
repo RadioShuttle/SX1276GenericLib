@@ -34,9 +34,9 @@ protected:
     /*!
      * Antenna switch GPIO pins objects
      */
-    DigitalInOut *_antSwitch;
-    DigitalInOut *_antSwitchTX;
-    DigitalInOut *_antSwitchTXBoost;
+    DigitalOut *_antSwitch;
+    DigitalOut *_antSwitchTX;
+    DigitalOut *_antSwitchTXBoost;
 
     /*!
      * SX1276 Reset pin

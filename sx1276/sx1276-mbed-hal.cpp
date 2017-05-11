@@ -43,14 +43,14 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
     switch(boardConnected) {
         case SX1276MB1MAS:
         case SX1276MB1LAS:
-            _antSwitch = new DigitalInOut(antSwitch);
+            _antSwitch = new DigitalOut(antSwitch);
             break;
         case RFM95_SX1276:
             break;
         case MURATA_SX1276:
-            _antSwitch = new DigitalInOut(antSwitch);
-            _antSwitchTX = new DigitalInOut(antSwitchTX);
-            _antSwitchTXBoost = new DigitalInOut(antSwitchTXBoost);
+            _antSwitch = new DigitalOut(antSwitch);
+            _antSwitchTX = new DigitalOut(antSwitchTX);
+            _antSwitchTXBoost = new DigitalOut(antSwitchTXBoost);
             break;
         default:
             break;
@@ -160,13 +160,6 @@ void SX1276Generic::SpiInit( void )
 
 void SX1276Generic::IoIrqInit( DioIrqHandler *irqHandlers )
 {
-#if( defined ( TARGET_NUCLEO_L152RE ) || defined ( TARGET_LPC11U6X ) )
-    dio0.mode( PullDown );
-    dio1.mode( PullDown );
-    dio2.mode( PullDown );
-    dio3.mode( PullDown );
-    dio4.mode( PullDown );
-#endif
     if (_dio0)
     	_dio0->rise(callback(this, static_cast< Trigger > ( irqHandlers[0] )));
     if (_dio1)
