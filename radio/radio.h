@@ -131,11 +131,11 @@ typedef struct
     /*!
      * @brief  Tx Done callback prototype.
      */
-    void    ( *TxDone )( void );
+    void    ( *TxDone )(void *radio);
     /*!
      * @brief  Tx Timeout callback prototype.
      */
-    void    ( *TxTimeout )( void );
+    void    ( *TxTimeout )(void *radio);
     /*!
      * @brief Rx Done callback prototype.
      *
@@ -146,28 +146,29 @@ typedef struct
      *                     FSK : N/A ( set to 0 )
      *                     LoRa: SNR value in dB
      */
-    void    ( *RxDone )( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
+    void    ( *RxDone )(void *radio, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
     /*!
      * @brief  Rx Timeout callback prototype.
      */
-    void    ( *RxTimeout )( void );
+    void    ( *RxTimeout )(void *radio);
     /*!
      * @brief Rx Error callback prototype.
      */
-    void    ( *RxError )( void );
+    void    ( *RxError )(void *radio);
     /*!
      * \brief  FHSS Change Channel callback prototype.
      *
      * \param [IN] currentChannel   Index number of the current channel
      */
-    void ( *FhssChangeChannel )( uint8_t currentChannel );
+    void ( *FhssChangeChannel )(void *radio, uint8_t currentChannel );
 
     /*!
      * @brief CAD Done callback prototype.
      *
      * @param [IN] channelDetected    Channel Activity detected during the CAD
      */
-    void ( *CadDone ) ( bool channelActivityDetected );
+    void ( *CadDone ) (void *radio, bool channelActivityDetected );
+
 }RadioEvents_t;
 
 /*!
