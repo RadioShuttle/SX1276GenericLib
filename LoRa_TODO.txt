@@ -26,5 +26,8 @@ Done:
 - Verify the Murata ANT Switch code
 - MURATA PA_BOOST case,is _antSwitchTXBoost right? (Same as STM sample code)
 - Check of the MURATA TCXO config is correct (implemented, check JP9 on STM L0 board)
-- Make the timers more generic and move the OS code into the HAL layer. (May Helmut)
+- Make the timers more generic and move the OS code into the HAL layer. (May 2017 Helmut)
 - Removed pull down on dio=-dio5 for L151 &LPC11U6X which make no sense to me. May 2017 Helmut
+- Added radio API support to receive the MaxMTUSize (May 2017 Helmut)
+- Added Send optional Send() parameter to include a header,
+  this saves additional buffers. (May 2017 Helmut)

@@ -208,7 +208,7 @@ public:
     /*!
      * Return current radio status
      *
-     * @param status Radio status. [RF_IDLE, RX_RUNNING, TX_RUNNING]
+     * @param status Radio status. [RF_IDLE, RX_RUNNING, TX_RUNNING, CAD_RUNNING]
      */
     virtual RadioState GetStatus( void ); 
 
@@ -354,8 +354,10 @@ public:
      *
      * @param [IN]: buffer     Buffer pointer
      * @param [IN]: size       Buffer size
+     * @param [IN]: buffer     Header pointer
+     * @param [IN]: size       Header size
      */
-    virtual void Send( uint8_t *buffer, uint8_t size );
+    virtual void Send( uint8_t *buffer, uint8_t size, uint8_t *header = NULL, uint8_t hsize = 0);
 
     /*!
      * @brief Sets the radio in sleep mode
@@ -396,6 +398,13 @@ public:
 
     virtual void SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time );
 
+    /*!
+     * @brief Returns the maximal transfer unit for a given modem
+     *
+     * @retval MTU size in bytes
+     */
+    virtual int16_t MaxMTUSize( RadioModems_t modem );
+    
     /*!
      * @brief Reads the current RSSI value
      *

@@ -633,7 +633,7 @@ uint32_t SX1276::TimeOnAir( RadioModems_t modem, uint8_t pktLen )
     return airTime;
 }
 
-void SX1276::Send( uint8_t *buffer, uint8_t size )
+void SX1276::Send( uint8_t *buffer, uint8_t size, uint8_t *header, uint8_t hsize )
 {
     uint32_t txTimeout = 0;
 
@@ -642,28 +642,35 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
     case MODEM_FSK:
         {
             this->settings.FskPacketHandler.NbBytes = 0;
-            this->settings.FskPacketHandler.Size = size;
+            this->settings.FskPacketHandler.Size = size + hsize;
 
             if( this->settings.Fsk.FixLen == false )
             {
-                WriteFifo( ( uint8_t* )&size, 1 );
+                uint8_t tmpsize = size + hsize;
+                WriteFifo( ( uint8_t* )&tmpsize, 1 );
             }
             else
             {
-                Write( REG_PAYLOADLENGTH, size );
+                Write( REG_PAYLOADLENGTH, size + hsize);
 			}
 
-            if( ( size > 0 ) && ( size <= 64 ) )
+            if( ( size + hsize > 0 ) && ( size + hsize <= 64 ) )
             {
-                this->settings.FskPacketHandler.ChunkSize = size;
+                this->settings.FskPacketHandler.ChunkSize = size + hsize;
             }
             else
             {
-				memcpy( rxtxBuffer, buffer, size );
+                if (header) {
+                    WriteFifo( header, hsize );
+                    memcpy( rxtxBuffer, header, hsize );
+                }
+				memcpy( rxtxBuffer+hsize, buffer+hsize, size );
                 this->settings.FskPacketHandler.ChunkSize = 32;
             }
 
             // Write payload buffer
+            if (header)
+                WriteFifo( header, hsize );
             WriteFifo( buffer, this->settings.FskPacketHandler.ChunkSize );
             this->settings.FskPacketHandler.NbBytes += this->settings.FskPacketHandler.ChunkSize;
             txTimeout = this->settings.Fsk.TxTimeout;
@@ -682,10 +689,10 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
                 Write( REG_LR_INVERTIQ2, RFLR_INVERTIQ2_OFF );
             }
 
-            this->settings.LoRaPacketHandler.Size = size;
+            this->settings.LoRaPacketHandler.Size = size + hsize;
 
             // Initializes the payload size
-            Write( REG_LR_PAYLOADLENGTH, size );
+            Write( REG_LR_PAYLOADLENGTH, size + hsize);
 
             // Full buffer used for Tx
             Write( REG_LR_FIFOTXBASEADDR, 0 );
@@ -698,6 +705,8 @@ void SX1276::Send( uint8_t *buffer, uint8_t size )
                 wait_ms( 1 );
             }
             // Write payload buffer
+            if (header)
+                WriteFifo( header, hsize );
             WriteFifo( buffer, size );
             txTimeout = this->settings.LoRa.TxTimeout;
         }
@@ -1000,6 +1009,24 @@ void SX1276::SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time )
     this->settings.State = RF_TX_RUNNING;
     SetTimeout(TXTimeoutTimer, &SX1276::OnTimeoutIrq, timeout);
     SetOpMode( RF_OPMODE_TRANSMITTER );
+}
+
+int16_t SX1276::MaxMTUSize( RadioModems_t modem )
+{
+    int16_t mtuSize = 0;
+    
+    switch( modem )
+    {
+        case MODEM_FSK:
+            mtuSize = RX_BUFFER_SIZE;
+        case MODEM_LORA:
+            mtuSize = RX_BUFFER_SIZE;
+            break;
+        default:
+            mtuSize = -1;
+            break;
+    }
+    return mtuSize;
 }
 
 int16_t SX1276::GetRssi( RadioModems_t modem )
