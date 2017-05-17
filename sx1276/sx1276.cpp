@@ -633,7 +633,7 @@ uint32_t SX1276::TimeOnAir( RadioModems_t modem, uint8_t pktLen )
     return airTime;
 }
 
-void SX1276::Send( uint8_t *buffer, uint8_t size, uint8_t *header, uint8_t hsize )
+void SX1276::Send( void *buffer, int16_t size, void *header, int16_t hsize )
 {
     uint32_t txTimeout = 0;
 
@@ -664,7 +664,7 @@ void SX1276::Send( uint8_t *buffer, uint8_t size, uint8_t *header, uint8_t hsize
                     WriteFifo( header, hsize );
                     memcpy( rxtxBuffer, header, hsize );
                 }
-				memcpy( rxtxBuffer+hsize, buffer+hsize, size );
+				memcpy( rxtxBuffer+hsize, (uint8_t *)buffer+hsize, size );
                 this->settings.FskPacketHandler.ChunkSize = 32;
             }
 

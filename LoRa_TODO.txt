@@ -17,6 +17,7 @@ TODOs:
   callbacks for RX/TX/Cad timeouts
 - Test if the SX1276 timeouts. Does rx/tx/sync really uses three different
   timers or just one at a time.
+- Add API to set the LNA gain
 
 
 Done:
@@ -31,3 +32,6 @@ Done:
 - Added radio API support to receive the MaxMTUSize (May 2017 Helmut)
 - Added Send optional Send() parameter to include a header,
   this saves additional buffers. (May 2017 Helmut)
+- Added proper void * type from sending data, uint8_t * is not appropriate (May 2017 Helmut)
+- Use also void pointer for FiFo Write/Read and regular SPI Read/Write
+
