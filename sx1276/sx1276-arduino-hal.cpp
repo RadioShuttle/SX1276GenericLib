@@ -352,7 +352,7 @@ void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int ti
             else
                 txTimeoutTimer.detach();
             break;
-        case RXTimeoutSyncWorldTimer:
+        case RXTimeoutSyncWordTimer:
             if (func)
                 rxTimeoutSyncWord.attach_us(callback(this, func), timeout_ms);
             else

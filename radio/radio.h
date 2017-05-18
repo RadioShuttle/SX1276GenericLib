@@ -18,8 +18,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "mbed.h"
 
 
-/*
- !
+/*!
  * Radio driver internal state machine states definition
  */
 typedef enum RadioState
@@ -28,7 +27,7 @@ typedef enum RadioState
     RF_RX_RUNNING,
     RF_TX_RUNNING,
     RF_CAD,
-}RadioState_t;
+} RadioState_t;
 
 
 /*!

@@ -882,7 +882,7 @@ void SX1276::Rx( uint32_t timeout )
 
         if( rxContinuous == false )
         {
-            SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
+            SetTimeout(RXTimeoutSyncWordTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
         }
     }
     else
@@ -1163,12 +1163,12 @@ void SX1276::OnTimeoutIrq( void )
             {
                 // Continuous mode restart Rx chain
                 Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
+                SetTimeout(RXTimeoutSyncWordTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
             }
             else
             {
                 this->settings.State = RF_IDLE;
-                SetTimeout(RXTimeoutSyncWorldTimer, NULL);
+                SetTimeout(RXTimeoutSyncWordTimer, NULL);
             }
         }
         if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxTimeout != NULL ) )
@@ -1239,14 +1239,14 @@ void SX1276::OnDio0Irq( void )
 
                         if( this->settings.Fsk.RxContinuous == false )
                         {
-                            SetTimeout(RXTimeoutSyncWorldTimer, NULL);
+                            SetTimeout(RXTimeoutSyncWordTimer, NULL);
                             this->settings.State = RF_IDLE;
                         }
                         else
                         {
                             // Continuous mode restart Rx chain
                             Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                            SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
+                            SetTimeout(RXTimeoutSyncWordTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
                         }
 
                         if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxError != NULL ) )
@@ -1286,13 +1286,13 @@ void SX1276::OnDio0Irq( void )
                 if( this->settings.Fsk.RxContinuous == false )
                 {
                     this->settings.State = RF_IDLE;
-                    SetTimeout(RXTimeoutSyncWorldTimer, NULL);
+                    SetTimeout(RXTimeoutSyncWordTimer, NULL);
                 }
                 else
                 {
                     // Continuous mode restart Rx chain
                     Write( REG_RXCONFIG, Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                    SetTimeout(RXTimeoutSyncWorldTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
+                    SetTimeout(RXTimeoutSyncWordTimer, &SX1276::OnTimeoutIrq, this->settings.Fsk.RxSingleTimeout * 1e3);
 				}
 
                 if( ( this->RadioEvents != NULL ) && ( this->RadioEvents->RxDone != NULL ) )
@@ -1505,7 +1505,7 @@ void SX1276::OnDio2Irq( void )
 
                 if( ( this->settings.FskPacketHandler.PreambleDetected == true ) && ( this->settings.FskPacketHandler.SyncWordDetected == false ) )
                 {
-                    SetTimeout(RXTimeoutSyncWorldTimer, NULL);
+                    SetTimeout(RXTimeoutSyncWordTimer, NULL);
                     
                     this->settings.FskPacketHandler.SyncWordDetected = true;
 

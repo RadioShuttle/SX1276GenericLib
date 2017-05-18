@@ -493,7 +493,7 @@ public:
     typedef enum {
         RXTimeoutTimer,
         TXTimeoutTimer,
-        RXTimeoutSyncWorldTimer
+        RXTimeoutSyncWordTimer
     } TimeoutTimer_t;
 
 
