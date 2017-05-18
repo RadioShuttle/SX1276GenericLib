@@ -389,38 +389,40 @@ uint8_t SX1276Generic::Read( uint8_t addr )
     return data;
 }
 
-void SX1276Generic::Write( uint8_t addr, uint8_t *buffer, uint8_t size )
+void SX1276Generic::Write( uint8_t addr, void *buffer, uint8_t size )
 {
     uint8_t i;
+    uint8_t *p = (uint8_t *)buffer;
     
     *_nss = 0; // what about SPI hold/release timing on fast MCUs? Helmut
     _spi->write( addr | 0x80 );
     for( i = 0; i < size; i++ )
     {
-        _spi->write( buffer[i] );
+        _spi->write(*p++);
     }
     *_nss = 1;
 }
 
-void SX1276Generic::Read( uint8_t addr, uint8_t *buffer, uint8_t size )
+void SX1276Generic::Read( uint8_t addr, void *buffer, uint8_t size )
 {
     uint8_t i;
+    uint8_t *p = (uint8_t *)buffer;
     
     *_nss = 0; // what about SPI hold/release timing on fast MCUs? Helmut
     _spi->write( addr & 0x7F );
     for( i = 0; i < size; i++ )
     {
-        buffer[i] = _spi->write( 0 );
+        *p++ = _spi->write( 0 );
     }
     *_nss = 1;
 }
 
-void SX1276Generic::WriteFifo( uint8_t *buffer, uint8_t size )
+void SX1276Generic::WriteFifo( void *buffer, uint8_t size )
 {
     Write( 0, buffer, size );
 }
 
-void SX1276Generic::ReadFifo( uint8_t *buffer, uint8_t size )
+void SX1276Generic::ReadFifo( void *buffer, uint8_t size )
 {
     Read( 0, buffer, size );
 }

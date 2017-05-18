@@ -80,7 +80,7 @@ private:
     typedef void (SX1276Generic::*Trigger)(void);
     
     
-public:
+    public:
     SX1276Generic( RadioEvents_t *events, BoardType_t board,
                   PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
                   PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
@@ -164,7 +164,7 @@ protected:
      */
     virtual void SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr, int timeout_ms = 0);
     
-public:
+    public:
     
     /*!
      * @brief Detect the board connected by reading the value of the antenna switch pin
@@ -202,7 +202,7 @@ public:
      * @param [IN] buffer Buffer containing the new register's values
      * @param [IN] size   Number of registers to be written
      */
-    virtual void Write( uint8_t addr, uint8_t *buffer, uint8_t size ) ;
+    virtual void Write( uint8_t addr, void *buffer, uint8_t size ) ;
     
     /*!
      * @brief Reads multiple radio registers starting at address
@@ -211,7 +211,7 @@ public:
      * @param [OUT] buffer Buffer where to copy the registers data
      * @param [IN] size Number of registers to be read
      */
-    virtual void Read ( uint8_t addr, uint8_t *buffer, uint8_t size ) ;
+    virtual void Read ( uint8_t addr, void *buffer, uint8_t size ) ;
     
     /*!
      * @brief Writes the buffer contents to the SX1276 FIFO
@@ -219,7 +219,7 @@ public:
      * @param [IN] buffer Buffer containing data to be put on the FIFO.
      * @param [IN] size Number of bytes to be written to the FIFO
      */
-    virtual void WriteFifo( uint8_t *buffer, uint8_t size ) ;
+    virtual void WriteFifo( void *buffer, uint8_t size ) ;
     
     /*!
      * @brief Reads the contents of the SX1276 FIFO
@@ -227,7 +227,7 @@ public:
      * @param [OUT] buffer Buffer where to copy the FIFO read data.
      * @param [IN] size Number of bytes to be read from the FIFO
      */
-    virtual void ReadFifo( uint8_t *buffer, uint8_t size ) ;
+    virtual void ReadFifo( void *buffer, uint8_t size ) ;
     
     /*!
      * @brief Reset the SX1276
