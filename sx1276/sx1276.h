@@ -62,26 +62,6 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 
 
 
-/*!
- * FSK bandwidth definition
- */
-typedef struct
-{
-    uint32_t bandwidth;
-    uint8_t  RegValue;
-}FskBandwidth_t;
-
-
-/*!
- * Radio registers definition
- */
-typedef struct
-{
-    ModemType   Modem;
-    uint8_t     Addr;
-    uint8_t     Value;
-}RadioRegisters_t;
-
 
 /*!
  * Type of the supported board. [SX1276MB1MAS / SX1276MB1LAS]
@@ -94,24 +74,6 @@ typedef enum BoardType
     MURATA_SX1276,
     UNKNOWN
 }BoardType_t;
-
-
-
-typedef enum {
-    LORA_BANKWIDTH_7kHz  = 0, //  7.8 kHz requires TCXO
-    LORA_BANKWIDTH_10kHz = 1, // 10.4 kHz requires TCXO
-    LORA_BANKWIDTH_15kHz = 2, // 15.6 kHz requires TCXO
-    LORA_BANKWIDTH_20kHz = 3, // 20.8 kHz requires TCXO
-    LORA_BANKWIDTH_31kHz = 4, // 31.2 kHz requires TCXO
-	LORA_BANKWIDTH_41kHz = 5, // 41.4 kHz requires TCXO
-	LORA_BANKWIDTH_62kHz = 6, // 62.5 kHz requires TCXO
-    
-    LORA_BANKWIDTH_125kHz = 7,
-    LORA_BANKWIDTH_250kHz = 8,
-    LORA_BANKWIDTH_500kHz = 9,
-    LORA_BANKWIDTH_RESERVED = 10,
-} Lora_bandwidth_t;
-
 
 
 typedef enum {
@@ -175,7 +137,15 @@ protected:
 
     RadioSettings_t settings;
 
-    static const FskBandwidth_t FskBandwidths[];
+    /*!
+     * FSK bandwidth definition
+     */
+    struct BandwidthMap {
+        uint32_t bandwidth;
+        uint8_t  RegValue;
+    };
+    static const struct BandwidthMap FskBandwidths[];
+    static const struct BandwidthMap LoRaBandwidths[];
     
 protected:
 
@@ -189,6 +159,9 @@ protected:
 public:
     SX1276( RadioEvents_t *events);
     virtual ~SX1276( );
+    
+    
+    
     
     //-------------------------------------------------------------------------
     //                        Redefined Radio functions
@@ -493,8 +466,17 @@ public:
     //-------------------------------------------------------------------------
     //                        Board relative functions
     //-------------------------------------------------------------------------
-
-    static const RadioRegisters_t RadioRegsInit[];
+    /*!
+     * Radio registers definition
+     */
+    struct RadioRegisters {
+        ModemType   Modem;
+        uint8_t     Addr;
+        uint8_t     Value;
+    };
+    
+    
+    static const struct RadioRegisters RadioRegsInit[];
 
     typedef enum {
         RXTimeoutTimer,
@@ -634,6 +616,22 @@ protected:
      * \retval regValue Bandwidth register value.
      */
     static uint8_t GetFskBandwidthRegValue( uint32_t bandwidth );
+
+    static uint8_t GetLoRaBandwidthRegValue( uint32_t bandwidth );
+    
+    enum {
+        LORA_BANKWIDTH_7kHz  = 0, //  7.8 kHz requires TCXO
+        LORA_BANKWIDTH_10kHz = 1, // 10.4 kHz requires TCXO
+        LORA_BANKWIDTH_15kHz = 2, // 15.6 kHz requires TCXO
+        LORA_BANKWIDTH_20kHz = 3, // 20.8 kHz requires TCXO
+        LORA_BANKWIDTH_31kHz = 4, // 31.2 kHz requires TCXO
+        LORA_BANKWIDTH_41kHz = 5, // 41.4 kHz requires TCXO
+        LORA_BANKWIDTH_62kHz = 6, // 62.5 kHz requires TCXO
+        LORA_BANKWIDTH_125kHz = 7,
+        LORA_BANKWIDTH_250kHz = 8,
+        LORA_BANKWIDTH_500kHz = 9,
+        LORA_BANKWIDTH_RESERVED = 10,
+    };
 };
 
 #endif // __SX1276_H__
