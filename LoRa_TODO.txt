@@ -34,4 +34,7 @@ Done:
   this saves additional buffers. (May 2017 Helmut)
 - Added proper void * type from sending data, uint8_t * is not appropriate (May 2017 Helmut)
 - Use also void pointer for FiFo Write/Read and regular SPI Read/Write
+- Added return value to Init, we check for a radio availability (May 2017 Helmut)
+- Added a RxSignalPending which verifies if we have a signal pending in receive state. (May 2017 Helmut)
+
 

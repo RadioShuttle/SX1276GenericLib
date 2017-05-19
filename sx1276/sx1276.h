@@ -194,11 +194,11 @@ public:
     //                        Redefined Radio functions
     //-------------------------------------------------------------------------
     /*!
-     * @brief Initializes the radio
+     * @brief Return current radio status, returns true if a radios has been found.
      *
      * @param [IN] events Structure containing the driver callback functions
      */
-    virtual void Init( RadioEvents_t *events );
+    virtual bool Init( RadioEvents_t *events );
 
     /*!
      *  @brief Initializes the radio registers
@@ -380,6 +380,12 @@ public:
      *                     [0: continuous, others timeout]
      */
     virtual void Rx( uint32_t timeout );
+    
+    /*!
+     * @brief Check is radio receives a signal
+     */
+    virtual bool RxSignalPending();
+
 
     /*!
      * @brief Sets the radio in transmission mode for the given time

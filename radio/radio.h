@@ -199,10 +199,10 @@ public:
      *
      * @param [IN] events Structure containing the driver callback functions
      */
-    virtual void Init( RadioEvents_t *events ) = 0;
+    virtual bool Init( RadioEvents_t *events ) = 0;
 
     /*!
-     * @brief Return current radio status
+     * @brief Return current radio status, returns true if a radios has been found.
      *
      * @param status Radio status. [RF_IDLE, RX_RUNNING, TX_RUNNING, CAD_RUNNING]
      */
@@ -375,6 +375,12 @@ public:
      *                     [0: continuous, others timeout]
      */
     virtual void Rx( uint32_t timeout ) = 0;
+    
+    /*!
+     * @brief Check is radio receives a signal
+     */
+    virtual bool RxSignalPending() = 0;
+
 
     /*!
      * @brief Sets the radio in transmission mode for the given time

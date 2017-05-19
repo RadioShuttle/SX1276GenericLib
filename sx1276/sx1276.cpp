@@ -103,9 +103,13 @@ SX1276::~SX1276( )
     delete this->dioIrq;
 }
 
-void SX1276::Init( RadioEvents_t *events )
+bool SX1276::Init( RadioEvents_t *events )
 {
+    if (Read(REG_VERSION) == 0x00)
+        return false;
+    
     this->RadioEvents = events;
+    return true;
 }
 
 
@@ -896,6 +900,23 @@ void SX1276::Rx( uint32_t timeout )
             SetOpMode( RFLR_OPMODE_RECEIVER_SINGLE );
         }
     }
+}
+
+bool SX1276::RxSignalPending()
+{
+    if (this->settings.State != RF_RX_RUNNING)
+        return false;
+    
+    switch( this->settings.Modem )
+    {
+        case MODEM_FSK:
+            break;
+        case MODEM_LORA:
+            if (Read(REG_LR_MODEMSTAT) & RFLR_MODEMSTAT_SIGNAL_DETECTED)
+                return true;
+            break;
+    }
+    return false;
 }
 
 void SX1276::Tx( uint32_t timeout )

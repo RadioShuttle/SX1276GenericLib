@@ -291,9 +291,15 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * RegModemStat (Read Only)
  */
-#define RFLR_MODEMSTAT_RX_CR_MASK                   0x1F 
+#define RFLR_MODEMSTAT_RX_CR_MASK					0x1F
 #define RFLR_MODEMSTAT_MODEM_STATUS_MASK            0xE0 
- 
+
+#define RFLR_MODEMSTAT_MODEM_CLEAR					0x10
+#define RFLR_MODEMSTAT_HEADERINFO_VALID				0x08
+#define RFLR_MODEMSTAT_RX_ONGOING					0x04
+#define RFLR_MODEMSTAT_SIGNAL_SYNCRONIZED			0x02
+#define RFLR_MODEMSTAT_SIGNAL_DETECTED				0x01
+
 /*!
  * RegPktSnrValue (Read Only)
  */
