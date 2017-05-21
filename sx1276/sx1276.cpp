@@ -349,7 +349,8 @@ void SX1276::SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
         break;
     case MODEM_LORA:
         {
-            bandwidth = GetLoRaBandwidthRegValue(bandwidth);
+            if (bandwidth > 11) // specified in Hz, needs mapping
+            	bandwidth = GetLoRaBandwidthRegValue(bandwidth);
             if( bandwidth > LORA_BANKWIDTH_500kHz )
             {
                 // Fatal error: When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
@@ -510,7 +511,8 @@ void SX1276::SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
     case MODEM_LORA:
         {
             this->settings.LoRa.Power = power;
-            bandwidth = GetLoRaBandwidthRegValue(bandwidth);
+            if (bandwidth > 11) // specified in Hz, needs mapping
+            	bandwidth = GetLoRaBandwidthRegValue(bandwidth);
             if( bandwidth > LORA_BANKWIDTH_500kHz )
             {
                 // Fatal error: When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
