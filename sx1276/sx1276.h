@@ -128,12 +128,6 @@ protected:
     DioIrqHandler *dioIrq;
 
 
-    /*!
-     * Tx and Rx timers
-     */
-    Timeout txTimeoutTimer;
-    Timeout rxTimeoutTimer;
-    Timeout rxTimeoutSyncWord;
 
     RadioSettings_t settings;
 

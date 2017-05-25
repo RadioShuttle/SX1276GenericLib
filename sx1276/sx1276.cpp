@@ -911,9 +911,7 @@ void SX1276::Rx( uint32_t timeout )
         }
         break;
     }
-
-    memset( rxtxBuffer, 0, ( size_t )RX_BUFFER_SIZE );
-
+    
     this->settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
     {

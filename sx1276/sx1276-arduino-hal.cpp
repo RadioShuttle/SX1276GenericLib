@@ -93,8 +93,6 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
     RadioRegistersInit( );
     
     SetModem( MODEM_FSK );
-    
-    this->settings.State = RF_IDLE ;
 }
 
 SX1276Generic::~SX1276Generic()
