@@ -598,7 +598,7 @@ void SX1276::SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
     }
 }
 
-uint32_t SX1276::TimeOnAir( RadioModems_t modem, uint8_t pktLen )
+uint32_t SX1276::TimeOnAir( RadioModems_t modem, int16_t pktLen )
 {
     uint32_t airTime = 0;
 

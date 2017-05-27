@@ -313,7 +313,7 @@ public:
      *
      * @retval airTime        Computed airTime for the given packet payload length
      */
-    virtual uint32_t TimeOnAir ( RadioModems_t modem, uint8_t pktLen );
+    virtual uint32_t TimeOnAir ( RadioModems_t modem, int16_t pktLen );
 
     /*!
      * @brief Sends the buffer of size. Prepares the packet to be sent and sets
