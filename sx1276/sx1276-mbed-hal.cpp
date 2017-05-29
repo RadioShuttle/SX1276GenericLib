@@ -242,7 +242,7 @@ uint8_t SX1276Generic::GetPaSelect( uint32_t channel )
 {
     if( channel > RF_MID_BAND_THRESH )
     {
-        if( boardConnected == SX1276MB1LAS || boardConnected == RFM95_SX1276)
+        if( boardConnected == SX1276MB1LAS || boardConnected == RFM95_SX1276 || boardConnected == MURATA_SX1276)
         {
             return RF_PACONFIG_PASELECT_PABOOST;
         }
