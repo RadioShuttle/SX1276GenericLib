@@ -456,7 +456,13 @@ public:
      */
     virtual void SetPublicNetwork( bool enable );
 
-
+    /*!
+     * @brief Sets the radio output power.
+     *
+     * @param [IN] power Sets the RF output power
+     */
+    virtual void SetRfTxPower( int8_t power ) = 0;
+    
     //-------------------------------------------------------------------------
     //                        Board relative functions
     //-------------------------------------------------------------------------
@@ -503,13 +509,6 @@ protected:
      * \remark Useful when going in MCU lowpower modes
      */
     virtual void IoDeInit( void ) = 0;
-
-    /*!
-     * @brief Sets the radio output power.
-     *
-     * @param [IN] power Sets the RF output power
-     */
-    virtual void SetRfTxPower( int8_t power ) = 0;
 
     /*!
      * @brief Gets the board PA selection configuration

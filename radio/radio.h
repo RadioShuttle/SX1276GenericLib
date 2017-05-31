@@ -478,6 +478,14 @@ public:
      * @param [IN] enable if true, it enables a public network
      */
     virtual void SetPublicNetwork( bool enable ) = 0;
+    
+    /*!
+     * \brief Sets the radio output power.
+     *
+     * @param [IN] power Sets the RF output power
+     */
+    virtual void SetRfTxPower( int8_t power ) = 0;
+
 };
 
 #endif // __RADIO_H__

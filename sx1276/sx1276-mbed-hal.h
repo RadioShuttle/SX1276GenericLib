@@ -116,13 +116,6 @@ protected:
     virtual void IoDeInit( void );
 
     /*!
-     * \brief Sets the radio output power.
-     *
-     * @param [IN] power Sets the RF output power
-     */
-    virtual void SetRfTxPower( int8_t power );
-
-    /*!
      * @brief Gets the board PA selection configuration
      *
      * @param [IN] channel Channel frequency in Hz
@@ -232,6 +225,14 @@ public:
      * @brief Reset the SX1276
      */
     virtual void Reset( void );
+    
+    /*!
+     * \brief Sets the radio output power.
+     *
+     * @param [IN] power Sets the RF output power
+     */
+    virtual void SetRfTxPower( int8_t power );
+    
 };
 
 #endif // __SX1276_MBED_HAL_H__

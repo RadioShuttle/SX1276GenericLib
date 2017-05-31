@@ -38,6 +38,5 @@ Done:
 - Added a RxSignalPending which verifies if we have a signal pending in receive state. (May 2017 Helmut)
 - Added LoRa bandwidth mapping table, now the SetRx/Tx frequency is in Hz. (May 2017 Helmut)
 - Enabled MURATA_SX1276 for the MURATA_SX1276 chip (May 2017 Helmut)
-
-
+- Made SetRfTxPower public to allow easily power TX changes (May 2017 Helmut)
 

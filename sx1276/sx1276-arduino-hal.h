@@ -115,14 +115,7 @@ protected:
      * \remark Useful when going in MCU lowpower modes
      */
     virtual void IoDeInit( void );
-    
-    /*!
-     * \brief Sets the radio output power.
-     *
-     * @param [IN] power Sets the RF output power
-     */
-    virtual void SetRfTxPower( int8_t power );
-    
+
     /*!
      * @brief Gets the board PA selection configuration
      *
@@ -233,6 +226,14 @@ protected:
      * @brief Reset the SX1276
      */
     virtual void Reset( void );
+
+    /*!
+     * \brief Sets the radio output power.
+     *
+     * @param [IN] power Sets the RF output power
+     */
+    virtual void SetRfTxPower( int8_t power );
+
 };
 
 #endif // __SX1276_ARDUINO_HAL_H__
