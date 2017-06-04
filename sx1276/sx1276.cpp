@@ -61,7 +61,7 @@ const SX1276::BandwidthMap SX1276::LoRaBandwidths[] =
     { 125000, 7 }, // the LoRa protocol default
     { 250000, 8 },
     { 500000, 9 },
-    { 0  	, 10 },  // Invalid Bandwidth, reserved
+    { 600000, 10 },  // Invalid Bandwidth, reserved
  };
 
 
