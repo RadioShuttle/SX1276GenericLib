@@ -130,11 +130,11 @@ typedef struct
     /*!
      * @brief  Tx Done callback prototype.
      */
-    void    ( *TxDone )(void *radio);
+    void    ( *TxDone )(void *radio, void *userThisPtr, void *userData);
     /*!
      * @brief  Tx Timeout callback prototype.
      */
-    void    ( *TxTimeout )(void *radio);
+    void    ( *TxTimeout )(void *radio, void *userThisPtr, void *userData);
     /*!
      * @brief Rx Done callback prototype.
      *
@@ -145,28 +145,42 @@ typedef struct
      *                     FSK : N/A ( set to 0 )
      *                     LoRa: SNR value in dB
      */
-    void    ( *RxDone )(void *radio, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
+    void    ( *RxDone )(void *radio, void *userThisPtr, void *userData, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
     /*!
      * @brief  Rx Timeout callback prototype.
      */
-    void    ( *RxTimeout )(void *radio);
+    void    ( *RxTimeout )(void *radio, void *userThisPtr, void *userData);
     /*!
      * @brief Rx Error callback prototype.
      */
-    void    ( *RxError )(void *radio);
+    void    ( *RxError )(void *radio, void *userThisPtr, void *userData);
     /*!
      * \brief  FHSS Change Channel callback prototype.
      *
      * \param [IN] currentChannel   Index number of the current channel
      */
-    void ( *FhssChangeChannel )(void *radio, uint8_t currentChannel );
+    void ( *FhssChangeChannel )(void *radio, void *userThisPtr, void *userData, uint8_t currentChannel );
 
     /*!
      * @brief CAD Done callback prototype.
      *
      * @param [IN] channelDetected    Channel Activity detected during the CAD
      */
-    void ( *CadDone ) (void *radio, bool channelActivityDetected );
+    void ( *CadDone ) (void *radio, void *userThisPtr, void *userData, bool channelActivityDetected );
+    
+    /*
+     * Optional data which is being provided in callbacks
+     * can be used e.g. for the C++ this pointer.
+     */
+    void *userThisPtr;
+    
+    /*
+     * Optional data which allows to bring in data structures pointer 
+     * for a given radio. As callbacks are being called in interrupt level
+     * the userData is perfect to know the context without iterating this
+     * data structures.
+     */
+    void *userData;
 
 }RadioEvents_t;
 

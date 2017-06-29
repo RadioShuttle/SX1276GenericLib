@@ -39,4 +39,6 @@ Done:
 - Added LoRa bandwidth mapping table, now the SetRx/Tx frequency is in Hz. (May 2017 Helmut)
 - Enabled MURATA_SX1276 for the MURATA_SX1276 chip (May 2017 Helmut)
 - Made SetRfTxPower public to allow easily power TX changes (May 2017 Helmut)
+- Added userData and userThisPtr into the radio events, this allows to call C++ 
+  functions and in can include a context via the userData
 
