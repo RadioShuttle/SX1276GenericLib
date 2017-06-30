@@ -95,7 +95,6 @@ const SX1276::RadioRegisters SX1276::RadioRegsInit[] = {
 
 SX1276::SX1276( RadioEvents_t *events) : Radio( events ), isRadioActive( false )
 {
-    wait_ms( 10 );
     this->rxtxBuffer = new uint8_t[RX_BUFFER_SIZE];
     
     this->RadioEvents = events;
@@ -163,7 +162,7 @@ bool SX1276::IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThre
 
     SetOpMode( RF_OPMODE_RECEIVER );
 
-    wait_ms( 1 );
+    Sleep_ms( 1 );
 
     rssi = GetRssi( modem );
 
@@ -202,7 +201,7 @@ uint32_t SX1276::Random( void )
 
     for( i = 0; i < 32; i++ )
     {
-        wait_ms( 1 );
+        Sleep_ms( 1 );
         // Unfiltered RSSI value reading. Only takes the LSB value
         rnd |= ( ( uint32_t )Read( REG_LR_RSSIWIDEBAND ) & 0x01 ) << i;
     }
@@ -746,7 +745,7 @@ void SX1276::Send( void *buffer, int16_t size, void *header, int16_t hsize )
             if( ( Read( REG_OPMODE ) & ~RF_OPMODE_MASK ) == RF_OPMODE_SLEEP )
             {
                 Standby( );
-                wait_ms( 1 );
+                Sleep_ms( 1 );
             }
             // Write payload buffer
             if (header)

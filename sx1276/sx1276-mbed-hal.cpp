@@ -29,6 +29,7 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
                             PinName antSwitch, PinName antSwitchTX, PinName antSwitchTXBoost, PinName tcxo)
                             : SX1276( events)
 {
+    Sleep_ms( 10 );
     this->RadioEvents = events;
     boardConnected = board;
     
@@ -360,6 +361,12 @@ void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int ti
                 rxTimeoutSyncWord.detach();
             break;
     }
+}
+
+void
+SX1276Generic::Sleep_ms(int ms)
+{
+    wait_ms(ms);
 }
 
 bool SX1276Generic::CheckRfFrequency( uint32_t frequency )

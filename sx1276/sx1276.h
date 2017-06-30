@@ -553,6 +553,11 @@ protected:
      * The the Timeout for a given Timer.
      */
     virtual void SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr, int timeout_ms = 0) = 0;
+    
+    /*
+     * A simple ms sleep
+     */
+    virtual void Sleep_ms(int ms) = 0;
 
 protected:
 
