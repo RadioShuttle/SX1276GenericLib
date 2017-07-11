@@ -23,8 +23,8 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define __SX1276_H__
 
 #include "radio.h"
-#include "./registers/sx1276Regs-Fsk.h"
-#include "./registers/sx1276Regs-LoRa.h"
+#include "sx1276Regs-Fsk.h"
+#include "sx1276Regs-LoRa.h"
 
 
 

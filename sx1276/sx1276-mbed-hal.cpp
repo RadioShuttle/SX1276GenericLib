@@ -19,6 +19,10 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
  * 30826 Garbsen (Hannover) Germany
  */
 
+#ifdef ARDUINO
+ #include "arduino-mbed.h"
+#endif
+
 #include "sx1276-mbed-hal.h"
 
 
@@ -56,7 +60,7 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
         default:
             break;
     }
-    _spi = new SPI(mosi, miso, sclk );
+    _spi = new XSPI(mosi, miso, sclk );
     _nss = new DigitalOut(nss);
     
     _reset = new DigitalInOut(reset);
@@ -371,6 +375,8 @@ SX1276Generic::Sleep_ms(int ms)
 
 bool SX1276Generic::CheckRfFrequency( uint32_t frequency )
 {
+    if (frequency > 1200000)
+        return false;
     // Implement check. Currently all frequencies are supported
     return true;
 }

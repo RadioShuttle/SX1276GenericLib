@@ -4,7 +4,6 @@ Move finished tasks to Done section:
 TODOs:
 - add support for Arduino - add sx1276-Arduino-hal.h/cpp
 - add support for Linux - add sx1276-Linux-hal.h/cpp
-- Add support for Cad detection before sending a packet
 - Add support to provide the send/receive packet buffer,
   no need to allocate packet data in the sx1276 driver. Can be provided
   Rx/Tx parameters, this avoids double memory usage
@@ -18,6 +17,9 @@ TODOs:
 - Test if the SX1276 timeouts. Does rx/tx/sync really uses three different
   timers or just one at a time.
 - Add API to set the LNA gain
+- Registering a new Timeout function within the Interrupt is not malloc save.
+  This is a major race condition problem.
+ 
 
 
 Done:
@@ -41,4 +43,7 @@ Done:
 - Made SetRfTxPower public to allow easily power TX changes (May 2017 Helmut)
 - Added userData and userThisPtr into the radio events, this allows to call C++ 
   functions and in can include a context via the userData
+- Add support for Cad detection before sending a packet, already done in higher 
+  level protocols
+- Added initial Arduino support, needs more testing/completion.
 

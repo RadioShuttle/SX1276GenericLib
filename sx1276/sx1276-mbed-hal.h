@@ -21,12 +21,19 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 
 #ifndef __SX1276_MBED_HAL_H__
 #define __SX1276_MBED_HAL_H__
+
+
 #include "sx1276.h"
 
 
+#ifdef __MBED__
+#define XSPI	SPI
+#endif
+
 
 /*!
- * Actual implementation of a SX1276 radio, includes some modifications to make it compatible with the MB1 LAS board
+ * Actual implementation of a SX1276 radio, includes some modifications to make it
+ * compatible with the MB1 LAS board
  */
 class SX1276Generic : public SX1276
 {
@@ -51,7 +58,7 @@ protected:
     /*!
      * SPI Interface
      */
-    SPI *_spi; // mosi, miso, sclk
+    XSPI *_spi; // mosi, miso, sclk
     DigitalOut *_nss;
     
     /*!

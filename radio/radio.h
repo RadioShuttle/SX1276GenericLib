@@ -15,8 +15,12 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #ifndef __RADIO_H__
 #define __RADIO_H__
 
+#ifdef __MBED__
 #include "mbed.h"
-
+#endif
+#ifdef ARDUINO
+#include <arduino.h>
+#endif
 
 /*!
  * Radio driver internal state machine states definition
