@@ -177,6 +177,8 @@ private:
     Callback<void()> _func;
 };
 
+extern uint32_t us_getTicker(void);
+
 class Timer {
 public:
     void start(void) {
@@ -237,7 +239,7 @@ protected:
     void remove(void);
 private:
     Callback<void()> _func;
-    uint32_t _timeout;	// in us this lasts form 49 days.
+    uint32_t _timeout;	// in us this lasts for 49 days.
 };
 
 #endif // __ARDUINO_MBED_H__
