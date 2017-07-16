@@ -17,8 +17,6 @@ TODOs:
 - Test if the SX1276 timeouts. Does rx/tx/sync really uses three different
   timers or just one at a time.
 - Add API to set the LNA gain
-- Registering a new Timeout function within the Interrupt is not malloc save.
-  This is a major race condition problem.
  
 
 

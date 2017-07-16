@@ -22,6 +22,8 @@ typedef int PinName;
 #define NC	-1
 #define	wait_ms	delay
 
+
+
 class DigitalInOut {
 public:
     DigitalInOut(PinName pin) {
@@ -177,21 +179,35 @@ private:
     Callback<void()> _func;
 };
 
+extern uint32_t ms_getTicker(void);
 extern uint32_t us_getTicker(void);
+extern uint64_t ns_getTicker(void);
+extern void sleep(void);
+extern void deepsleep(void);
+
 
 class Timer {
 public:
     void start(void) {
-        _time = micros();
+        _time = ns_getTicker();
     }
-    int read_ms(void) {
-        return (micros() - _time) / 1000;
+    uint32_t read_sec(void) {
+        int64_t n = ns_getTicker() - (uint64_t)_time;
+        n /= (uint64_t)1000000000;
+        return n;
     }
-    int read_us(void) {
-        return micros() - _time;
+    uint32_t read_ms(void) {
+        int64_t n = ns_getTicker() - (uint64_t)_time;
+        n /= (uint64_t)1000000;
+        return n;
+    }
+    uint32_t read_us(void) {
+        int64_t n = ns_getTicker() - (uint64_t)_time;
+        n /= (uint64_t)1000;
+        return n;
     }
 private:
-    uint32_t _time;
+    uint64_t _time;
 };
 
 
@@ -203,11 +219,20 @@ public:
         detach();
     }
     
-    void attach(Callback<void()> func, int msecs) {
+    void attach_sec(Callback<void()> func, uint32_t secs) {
+        if (secs == 0)
+            return detach();
+        _func = func;
+        _timeout = ns_getTicker() + (uint64_t)secs * (uint64_t)1000000000;
+        insert();
+        restart();
+    }
+
+    void attach(Callback<void()> func, uint32_t msecs) {
         if (msecs == 0)
             return detach();
         _func = func;
-        _timeout = micros() + (uint32_t)msecs * 1000;
+        _timeout = ns_getTicker() + (uint64_t)msecs * (uint64_t)1000000;
         insert();
         restart();
     }
@@ -216,12 +241,12 @@ public:
         if (usecs == 0)
             return detach();
         _func = func;
-        _timeout = micros() + usecs;
+        _timeout = ns_getTicker() + (uint64_t)usecs * (uint64_t)1000;
         insert();
         restart();
     }
     
-    void detach() {
+    void detach(void) {
         _func = NULL;
         remove();
         restart();
@@ -233,13 +258,13 @@ public:
         }
     }
 
-    static void restart(uint32_t usecs = 0);
+    static void restart(void);
+    uint64_t _timeout;	// in ns this lasts for 539 years.
 protected:
     void insert(void);
     void remove(void);
 private:
     Callback<void()> _func;
-    uint32_t _timeout;	// in us this lasts for 49 days.
 };
 
 #endif // __ARDUINO_MBED_H__

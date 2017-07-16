@@ -205,7 +205,6 @@ InterruptIn::fall(Callback<void()> func) {
 class Timeout;
 struct TimeoutVector {
     Timeout *timer;
-    volatile uint32_t timeout; // us
 } TimeOuts[MAX_TIMEOUTS];
 
 
@@ -216,16 +215,17 @@ struct TimeoutVector {
  */
 
 /*
- * see tcc.h included from
+ * see tcc.h is automatically included from:
  * Arduino15/packages/arduino/tools/CMSIS-Atmel/1.1.0/CMSIS/
  * Device/ATMEL/samd21/include/component/tcc.h
  * See also tcc.c (ASF/mbed, e.g. Tcc_get_count_value)
- * TODO connect the clock source to OSCULP32K.
  */
 static void initTimer(Tcc *t);
 static uint32_t getTimerCount(Tcc *t);
 
-
+/*
+ * The Atmel D21 has three TCC timer, other models have more.
+ */
 static const struct TCC_config {
     Tcc *tcc_ptr;
     IRQn_Type tcc_irq;
@@ -236,34 +236,87 @@ static const struct TCC_config {
     { TCC2, TCC2_IRQn, 16 },
     { NULL, (IRQn_Type)NULL, 0 }
 };
-#define USE_TCC_TIMEOUT	0 // TCC0, TTC1, TTC2 are working using the Arduino D21
+
+/*
+ * We preferably use the TCC timers because it supports 24-bit counters
+ * versus TC Timer which supports only 8 or 16 bit counters
+ * TCC0/1/2 timer work on the D21 using Arduino.
+ */
+#define USE_TCC_TIMEOUT	0 // 0=TCC0, 1=TTC1, 2=TTC2 (see TCC_data)
 #define USE_TCC_TICKER	1
 
-#define NS_PER_CLOCK	21333 // ns secs per clock
+
+/*
+ * every 21333 ns equals one tick (1/(48000000/1024)) // prescaler 1024, 48 MHz
+ * every 61035 ns equals one tick (1/(32768/2))		  // prescaler 2, 32 kHz
+ * COUNT*DIVIDER*SECS until interrupt
+ * CPU 48 MHz = (65536*1024)/1.398636s
+ * RTC 32 kHz = (65536*2)/4.0s
+ */
+#define NS_PER_CLOCK_CPU	21333 // ns secs per clock
+#define NS_PER_CLOCK_RTC	61035 // ns secs per clock
+
+#define NS_PER_CLOCK	NS_PER_CLOCK_RTC
 
 /* ----------------- TICKER TIMER CODE ----------------------*/
-long long ticker_ns = 0;
+
+/*
+ * The global ns_counter contains the time in ns from the last time
+ * the counter has been wrapped. It cannot be used directly because the
+ * current counter has to be added fore using it. Use instead
+ * ns_getTicker(), us_ ns_getTicker(), ms_getTicker()
+ */
+
+uint64_t ticker_ns;
 static bool initTickerDone = false;
 
-/*long long*/ uint32_t us_getTicker(void)
+uint32_t ms_getTicker(void)
+{
+    uint32_t us = us_getTicker();
+    
+    us /= 1000; // to ms
+    return us;
+}
+
+uint32_t us_getTicker(void)
+{
+    long long ns = ns_getTicker();
+
+    ns /= (long long)1000; // to us
+    uint32_t us = ns & 0xffffffff;
+    
+    return us;
+}
+
+
+uint64_t ns_getTicker(void)
 {
     Tcc *t = TCC_data[USE_TCC_TICKER].tcc_ptr;
     if (!initTickerDone) {
         initTimer(t);
         initTickerDone = true;
 
-        int bits = TCC_data[USE_TCC_TIMEOUT].nbits;
-        int maxCounts = (uint32_t)(1<<bits)-1;
-        t->CC[0].bit.CC = 0xfff; // maxCounts;
+        // set counter top to max 16 bit for testing
+        // t->PER.bit.PER = 0xffff;
+        // while (t->SYNCBUSY.bit.PER == 1); // wait for sync
 
         t->CTRLA.reg |= TCC_CTRLA_ENABLE ;		// Enable TC
         while (t->SYNCBUSY.bit.ENABLE == 1);	// wait for sync
-
     }
-    long long tmp_ns = ticker_ns;
-    tmp_ns +=  (NS_PER_CLOCK * getTimerCount(t));
-    uint32_t t32 = (long long)tmp_ns / (long long)1000 / (long long)1000;
-    return t32;
+    
+    /*
+     * if we are called from the interrupt level, the counter contains
+     * somehow wrong data, therfore we needs to read it twice.
+     * Another option was to add a little wait (loop 500x) 
+     * in the TCC_TIMEOUT interrupt handler.
+     */
+    if (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) // check if we are in the interrupt
+        getTimerCount(t);
+
+    uint64_t counter_us = (uint64_t)NS_PER_CLOCK * (uint64_t)getTimerCount(t);
+    uint64_t ns = ticker_ns + counter_us;
+
+    return ns;
 }
 
 #if USE_TCC_TICKER == 0
@@ -276,53 +329,61 @@ void TCC2_Handler()
 {
     Tcc *t = TCC_data[USE_TCC_TICKER].tcc_ptr;
     /*
-     * Overflow means the max timer exeeded
+     * Overflow means the timer top exeeded
      */
     if (t->INTFLAG.bit.OVF == 1) {  // A overflow caused the interrupt
-        Serial.print("Ticker_OVF\r\n");
         t->INTFLAG.bit.OVF = 1;    // writing a one clears the flag ovf flag
+        // Serial.println("T_OVF");
+
+        /*
+         * reading the count once is needed, otherwise
+         * it will not wrap correct.
+         */
+        getTimerCount(t);
         
         int bits = TCC_data[USE_TCC_TICKER].nbits;
         int maxCounts = (uint32_t)(1<<bits);
 		
-        ticker_ns += (NS_PER_CLOCK * maxCounts);
+        ticker_ns += (uint64_t)NS_PER_CLOCK * (uint64_t)maxCounts;
     }
     if (t->INTFLAG.bit.MC0 == 1) {  // A compare to cc0 caused the interrupt
-        Serial.print("MC0\r\n");
         t->INTFLAG.bit.MC0 = 1;    // writing a one clears the MCO (match capture) flag
+        // Serial.println("T_MC0");
     }
-    Serial.println("TICKER_INTR");
-#if 1
-    t->CTRLA.reg &= ~TCC_CTRLA_ENABLE;   // Disable TC
-    while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
-    t->CTRLA.reg |= TCC_CTRLA_ENABLE;   // Disable TC
-    while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
-#endif
 }
 
-/* ----------------- TIMEOUT TIMER CODE ----------------------*/
+/* ----------------- SUPPORT CODE FOR TCC TIMERS----------------------*/
 
 static bool initTimerDone = false;
 
-static void initTimer(Tcc *t) {
+static void initTimer(Tcc *t)
+{
     
-    // Enable clock for TCC, see gclk.h
+    /*
+     * enable clock for TCC, see gclk.h
+     * GCLK_CLKCTRL_GEN_GCLK0 for 48 Mhz CPU
+     * GCLK_CLKCTRL_GEN_GCLK1 for 32k extern crystal XOSC32K (ifdef CRYSTALLESS)
+     * GCLK_CLKCTRL_GEN_GCLK1 for 32k internal OSC32K
+     * see Arduino: arduino/hardware/samd/1.6.15/cores/arduino/startup.c
+     * Use TCC_CTRLA_PRESCALER_DIV1024 for for 48 Mhz clock
+     * Use TCC_CTRLA_PRESCALER_DIV2 for 32k clock
+     */
     if (t == TCC0 || t == TCC1) {
-        REG_GCLK_CLKCTRL = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID_TCC0_TCC1);
+        REG_GCLK_CLKCTRL = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK1 | GCLK_CLKCTRL_ID_TCC0_TCC1);
     } else if (t == TCC2) {
-        REG_GCLK_CLKCTRL = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID_TCC2_TC3_Val);
+        REG_GCLK_CLKCTRL = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK1 | GCLK_CLKCTRL_ID_TCC2_TC3_Val);
     }
     while (GCLK->STATUS.bit.SYNCBUSY == 1); // wait for sync
     
     t->CTRLA.reg &= ~TCC_CTRLA_ENABLE;   // Disable TCC
     while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
     
-    t->CTRLA.reg |= (TCC_CTRLA_PRESCALER_DIV1024 | TCC_CTRLA_RUNSTDBY); // Set perscaler
+    t->CTRLA.reg |= (TCC_CTRLA_PRESCALER_DIV2 | TCC_CTRLA_RUNSTDBY); // Set perscaler
     
     t->WAVE.reg |= TCC_WAVE_WAVEGEN_NFRQ; // Set wave form configuration
     while (t->SYNCBUSY.bit.WAVE == 1);	   // wait for sync
     
-    t->PER.bit.PER = 0xFFFFFF; // set counter top to max 24 bit
+    t->PER.bit.PER = 0xffffff; // set counter top to max 24 bit
     while (t->SYNCBUSY.bit.PER == 1); // wait for sync
     
     // the compare counter TC->CC[0].reg will be set in the startTimer
@@ -341,11 +402,12 @@ static void initTimer(Tcc *t) {
         }
         cp++;
     }
-    initTimerDone = true;
 }
 
-static uint32_t getTimerCount(Tcc *t) {
-
+#if 0
+// Atmel ASF Code
+static uint32_t getTimerCount(Tcc *t)
+{
     uint32_t last_cmd;
     /* Wait last command done */
     do {
@@ -366,6 +428,27 @@ static uint32_t getTimerCount(Tcc *t) {
 
     return t->COUNT.reg;
 }
+#endif
+
+
+static uint32_t getTimerCount(Tcc *t)
+{
+    
+    noInterrupts();
+
+    while (t->SYNCBUSY.bit.CTRLB); /* Wait for sync */
+
+    t->CTRLBSET.bit.CMD = TCC_CTRLBSET_CMD_READSYNC_Val; /* Issue read command and break */
+
+    while (t->SYNCBUSY.bit.COUNT); /* Wait for sync */
+    
+    uint32_t count = t->COUNT.reg;
+
+    interrupts();
+    
+    return count;
+}
+
 
 static void stopTimer(Tcc *t)
 {
@@ -373,10 +456,15 @@ static void stopTimer(Tcc *t)
     while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
 }
 
-static void startTimer(Tcc *t, uint32_t delay_us)
+
+/* ----------------- TIMEOUT TIMER CODE ----------------------*/
+
+static void startTimer(Tcc *t, uint64_t delay_ns)
 {
-    if (!initTimerDone)
+    if (!initTimerDone) {
         initTimer(t);	// initial setup with stopped timer
+        initTimerDone = true;
+    }
     
     stopTimer(t);		// avoid timer interrupts while calculating
     
@@ -385,8 +473,8 @@ static void startTimer(Tcc *t, uint32_t delay_us)
      * COUNT*DIVIDER*SECS until interrupt
      * 48 Mhz = (65536*1024)/1.398636s
      */
-    long long nclocks = delay_us * 1000; // ns;
-    nclocks = nclocks / 21333;
+    uint64_t nclocks = (uint64_t)delay_ns;
+    nclocks /= (uint64_t)NS_PER_CLOCK;
     int nCounts = nclocks;
    
     int bits = TCC_data[USE_TCC_TIMEOUT].nbits;
@@ -401,13 +489,12 @@ static void startTimer(Tcc *t, uint32_t delay_us)
 
     t->CTRLA.reg |= TCC_CTRLA_ENABLE ; // Enable TC
     while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
-#if 1
-    Serial.print(millis(), DEC);
+#if 0
+    Serial.print(ms_getTicker(), DEC);
     Serial.print(" startTimer: nCounts=");
     Serial.println(nCounts, DEC);
 #endif
 }
-
 
 
 #if USE_TCC_TIMEOUT == 0
@@ -418,29 +505,14 @@ void TCC1_Handler()
 void TCC2_Handler()
 #endif
 {
-    static uint32_t last_usecs = 0;
     Tcc *t = TCC_data[USE_TCC_TIMEOUT].tcc_ptr;
-    uint32_t usecs = micros();
-    uint32_t u_offset = 0;
+    uint64_t nsecs = ns_getTicker();
     
-    if (last_usecs && last_usecs < usecs) {
-        /*
-         * Problem is that the micros sometimes gives smaller values
-         * compared to previuos micros. As a workaround we all 1ms.
-         */
-        u_offset = 1000;
-    }
-    last_usecs = usecs;
-    
-    // Serial.print(getTimerCount(t), DEC);
-    // Serial.println(" TimerCount");
-
     /*
      * Overflow means the max timer exeeded, we need restart the timer
      * Interrupts and
      */
     if (t->INTFLAG.bit.OVF == 1) {  // A overflow caused the interrupt
-        Serial.print("Timer_OVF\r\n");
         t->INTFLAG.bit.OVF = 1;    // writing a one clears the flag ovf flag
     }
     
@@ -454,20 +526,20 @@ void TCC2_Handler()
     
     for (int i = 0; i < MAX_TIMEOUTS-1; i++) {
         struct TimeoutVector *tvp = &TimeOuts[i];
-        if (tvp->timer && tvp->timeout && usecs + u_offset >= tvp->timeout) {
+        if (tvp->timer && nsecs >= tvp->timer->_timeout) {
             Timeout *saveTimer = tvp->timer;
             tvp->timer = NULL;
-            tvp->timeout = 0;
             Timeout::_irq_handler(saveTimer);
         }
     }
     /*
      * we need to restart the timer for remaining interrupts
-     * we provide the interrupt entry time in usecs which means
-     * we don't count the irq_hander duration or debug prints
+     * Another reason is that we stopped this counter, in case there are
+     * remaining counts, we need to re-schedule the counter.
      */
-    Timeout::restart(usecs);
+	Timeout::restart();
 }
+
 
 #endif // D21 TCC Timer
 
@@ -478,7 +550,6 @@ Timeout::insert(void)
     for (int i = 0; i < MAX_TIMEOUTS-1; i++) {
         struct TimeoutVector *tvp = &TimeOuts[i];
         if (tvp->timer == NULL) {
-            tvp->timeout = _timeout;
             tvp->timer = this;
             break;
         }
@@ -494,7 +565,6 @@ Timeout::remove(void)
         struct TimeoutVector *tvp = &TimeOuts[i];
         if (tvp->timer == this) {
             tvp->timer = NULL;
-            tvp->timeout = 0;
             break;
         }
     }
@@ -503,9 +573,10 @@ Timeout::remove(void)
 
 
 void
-Timeout::restart(uint32_t usecs)
+Timeout::restart()
 {
-    uint32_t timeout = ~0;
+    Tcc *t = TCC_data[USE_TCC_TIMEOUT].tcc_ptr;
+    uint64_t timeout = ~0;
     
     /*
      * find the lowest timeout value which is our the next timeout
@@ -514,27 +585,59 @@ Timeout::restart(uint32_t usecs)
     noInterrupts();
     for (int i = 0; i < MAX_TIMEOUTS-1; i++) {
         struct TimeoutVector *tvp = &TimeOuts[i];
-        if (tvp->timer && tvp->timeout > 0) {
-            if (tvp->timeout < timeout) {
-                timeout = tvp->timeout;
+        if (tvp->timer) {
+            if (tvp->timer->_timeout < timeout) {
+                timeout = tvp->timer->_timeout;
             }
         }
     }
     interrupts();
     
-    if (timeout == (uint32_t)~0) {
-        stopTimer(TCC_data[USE_TCC_TIMEOUT].tcc_ptr);
+    if (timeout == (uint64_t)~0) {
+        stopTimer(t);
         return;
     }
-    if (!usecs)
-    	usecs = micros();
     
-    Tcc *t = TCC_data[USE_TCC_TIMEOUT].tcc_ptr;
-    if (timeout > usecs) {
-        startTimer(t, timeout - usecs);
+    uint64_t nsecs = ns_getTicker();
+    
+    if (timeout > nsecs) {
+        startTimer(t, (uint64_t)timeout - (uint64_t)nsecs);
         return;
     } else {
-        startTimer(t, 1); // just one usec to trigger interrrupt
+        startTimer(t, (uint64_t)1); // just one nsec to trigger interrrupt
     }
 }
+
+/* ----------------- D21 sleep() and deepsleep() code ----------------------*/
+
+void sleep(void)
+{
+#if  1 // (SAMD20 || SAMD21)
+    /* Errata: Make sure that the Flash does not power all the way down
+     * when in sleep mode. */
+    NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
+#endif
+
+    SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;	// clear deep sleep
+    PM->SLEEP.reg = 2; // SYSTEM_SLEEPMODE_IDLE_2 IDLE 2 sleep mode.
+
+    __DSB(); // ensures the completion of memory accesses
+    __WFI(); // wait for interrupt
+}
+
+void deepsleep(void)
+{
+#if  1 // (SAMD20 || SAMD21)
+    /* Errata: Make sure that the Flash does not power all the way down
+     * when in sleep mode. */
+    NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
+#endif
+
+    SCB->SCR |=  SCB_SCR_SLEEPDEEP_Msk; // standby mode
+
+    __DSB(); // ensures the completion of memory accesses
+    __WFI(); // wait for interrupt
+}
+
+
 #endif // ARDUINO
