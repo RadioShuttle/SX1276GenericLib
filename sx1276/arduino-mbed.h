@@ -22,7 +22,10 @@ typedef int PinName;
 #define NC	-1
 #define	wait_ms	delay
 
-
+enum PinMode {
+    PullUp = 1,
+    PullDown = 2,
+};
 
 class DigitalInOut {
 public:
@@ -41,6 +44,17 @@ public:
         pinMode(_gpioPin, INPUT);
     };
     
+    void mode(PinMode pull) {
+        switch(pull) {
+            case PullUp:
+                pinMode(_gpioPin, INPUT_PULLUP);
+                break;
+            case PullDown:
+                pinMode(_gpioPin, INPUT_PULLDOWN);
+                break;
+        }
+    }
+              
     int read() {
         if (digitalRead(_gpioPin) == HIGH)
             return 1;
