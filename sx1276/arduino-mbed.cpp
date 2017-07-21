@@ -179,7 +179,7 @@ InterruptIn::rise(Callback<void()> func) {
     if (func) {
         _func = func;
         intPtrTable[_gpioPin].context = this;
-        attachInterrupt(digitalPinToInterrupt(_gpioPin), intPtrTable[_gpioPin].func, RISING);
+        attachInterrupt(MYdigitalPinToInterrupt(_gpioPin), intPtrTable[_gpioPin].func, RISING);
     } else {
         _func = InterruptIn::donothing;
         intPtrTable[_gpioPin].context = NULL;
@@ -192,7 +192,7 @@ InterruptIn::fall(Callback<void()> func) {
     if (func) {
         _func = func;
         intPtrTable[_gpioPin].context = this;
-        attachInterrupt(digitalPinToInterrupt(_gpioPin), intPtrTable[_gpioPin].func, FALLING);
+        attachInterrupt(MYdigitalPinToInterrupt(_gpioPin), intPtrTable[_gpioPin].func, FALLING);
     } else {
         _func = InterruptIn::donothing;
         intPtrTable[_gpioPin].context = NULL;

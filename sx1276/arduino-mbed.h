@@ -22,6 +22,14 @@ typedef int PinName;
 #define NC	-1
 #define	wait_ms	delay
 
+
+#if ARDUINO_SAMD_VARIANT_COMPLIANCE >= 10606
+ #define MYdigitalPinToInterrupt(x)	digitalPinToInterrupt(x)
+#else
+ #define MYdigitalPinToInterrupt(x)	(x)
+#endif
+
+
 enum PinMode {
     PullUp = 1,
     PullDown = 2,
@@ -125,8 +133,10 @@ public:
         _hz = 1000000;
         _mode = SPI_MODE0;
         _spi->beginTransaction(SPISettings(_hz, MSBFIRST, _mode));
-        _spi->endTransaction();
     }
+    ~XSPI() {
+        _spi->endTransaction();
+    };
     
     void format(int bits, int mode = 0) {
         if (mode == 0)
@@ -140,19 +150,17 @@ public:
         else
             _mode = SPI_MODE0;
         _bits = bits;
+        _spi->endTransaction();
         _spi->beginTransaction(SPISettings(_hz, MSBFIRST, _mode));
-    	_spi->endTransaction();
     }
     void frequency(int hz) {
         _hz = hz;
-        _spi->beginTransaction(SPISettings(_hz, MSBFIRST, _mode));
         _spi->endTransaction();
+        _spi->beginTransaction(SPISettings(_hz, MSBFIRST, _mode));
     }
     
     int write(int value) {
-        _spi->beginTransaction(SPISettings(_hz, MSBFIRST, _mode));
         int ret = _spi->transfer(value);
-        _spi->endTransaction();
         return ret;
     }
 
@@ -176,7 +184,7 @@ public:
     }
     
     ~InterruptIn() {
-        detachInterrupt(digitalPinToInterrupt(_gpioPin));
+        detachInterrupt(MYdigitalPinToInterrupt(_gpioPin));
     };
     
     static void _irq_handler(InterruptIn *id) {
@@ -188,6 +196,16 @@ public:
     
     void fall(Callback<void()> func);
     
+    void mode(PinMode pull) {
+        switch(pull) {
+            case PullUp:
+                pinMode(_gpioPin, INPUT_PULLUP);
+                break;
+            case PullDown:
+                pinMode(_gpioPin, INPUT_PULLDOWN);
+                break;
+        }
+    }
 private:
     int _gpioPin;
     Callback<void()> _func;
