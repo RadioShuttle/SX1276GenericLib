@@ -2,7 +2,6 @@
 Move finished tasks to Done section:
 
 TODOs:
-- add support for Arduino - add sx1276-Arduino-hal.h/cpp
 - add support for Linux - add sx1276-Linux-hal.h/cpp
 - Add support to provide the send/receive packet buffer,
   no need to allocate packet data in the sx1276 driver. Can be provided
@@ -44,4 +43,4 @@ Done:
 - Add support for Cad detection before sending a packet, already done in higher 
   level protocols
 - Added initial Arduino support, needs more testing/completion.
-
+- Support for Arduino completed, initial version works.
