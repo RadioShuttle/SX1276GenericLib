@@ -17,11 +17,11 @@
 #undef max
 #undef map
 
-
 typedef int PinName;
 #define NC	-1
 #define	wait_ms	delay
-
+/* we need to redefine out dprintf because stdio.h uses the same name */
+#define dprint	dxprintf
 
 #if ARDUINO_SAMD_VARIANT_COMPLIANCE >= 10606
  #define MYdigitalPinToInterrupt(x)	digitalPinToInterrupt(x)
@@ -211,6 +211,7 @@ private:
     Callback<void()> _func;
 };
 
+extern uint32_t s_getTicker(void);
 extern uint32_t ms_getTicker(void);
 extern uint32_t us_getTicker(void);
 extern uint64_t ns_getTicker(void);

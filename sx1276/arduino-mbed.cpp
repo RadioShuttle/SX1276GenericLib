@@ -270,6 +270,16 @@ static const struct TCC_config {
 uint64_t ticker_ns;
 static bool initTickerDone = false;
 
+uint32_t s_getTicker(void)
+{
+    long long ns = ns_getTicker();
+    ns /= (long long)1000000000; // to secs
+    
+    int secs = ns;
+    return secs;
+}
+
+
 uint32_t ms_getTicker(void)
 {
     uint32_t us = us_getTicker();
@@ -617,12 +627,22 @@ void sleep(void)
      * when in sleep mode. */
     NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
 #endif
-
+    uint32_t saved_ms = ms_getTicker();
+    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
+    
     SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;	// clear deep sleep
     PM->SLEEP.reg = 2; // SYSTEM_SLEEPMODE_IDLE_2 IDLE 2 sleep mode.
 
     __DSB(); // ensures the completion of memory accesses
     __WFI(); // wait for interrupt
+    
+    int count = ms_getTicker() - saved_ms;
+    if (count > 0) { // update the Arduino Systicks
+        for (int i = 0; i < count; i++) {
+            SysTick_Handler();
+        }
+    }
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // enable SysTick
 }
 
 void deepsleep(void)
@@ -633,10 +653,14 @@ void deepsleep(void)
     NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
 #endif
 
+    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
+    
     SCB->SCR |=  SCB_SCR_SLEEPDEEP_Msk; // standby mode
-
+    
     __DSB(); // ensures the completion of memory accesses
     __WFI(); // wait for interrupt
+
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // enable SysTick
 }
 
 
