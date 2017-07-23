@@ -22,7 +22,6 @@ typedef int PinName;
 #define	wait_ms	delay
 /* we need to redefine out dprintf because stdio.h uses the same name */
 #define dprint	dxprintf
-
 #if ARDUINO_SAMD_VARIANT_COMPLIANCE >= 10606
  #define MYdigitalPinToInterrupt(x)	digitalPinToInterrupt(x)
 #else
