@@ -8,8 +8,10 @@ void TestTimeoutFunc1m(void);
 void SwitchInput(void);
 
 #define SW0   3  // switch needs pullup
+#define LED       LED_BUILTIN
+#define MYSERIAL Serial
 
-DigitalOut led(LED_BUILTIN);
+DigitalOut led(LED);
 InterruptIn intr(SW0);
 Timeout tp;
 Timeout tp2;
@@ -17,9 +19,10 @@ Timeout tp3;
 Timeout tp4;
 
 void setup() {
-  Serial.begin(230400);
+  MYSERIAL.begin(230400);
+  InitSerial(&MYSERIAL);
 
-  Serial.println("TimerTest");
+  ser->println("TimerTest");
 
   tp.attach(callback(&TestTimeoutFunc), 1000);
   tp2.attach(callback(&TestTimeoutFunc55), 5500);
@@ -41,21 +44,21 @@ void loop() {
 void TestTimeoutFunc(void) {
    tp.attach(callback(&TestTimeoutFunc), 1000);   
    led = !led;
-   Serial.print(ms_getTicker(), DEC);
-   Serial.println(" TestTimeoutFunc 1 sec");
+   ser->print(ms_getTicker(), DEC);
+   ser->println(" TestTimeoutFunc 1 sec");
 }
 
 void TestTimeoutFunc55(void) {
    tp2.attach(callback(&TestTimeoutFunc55), 5500);
-   Serial.print(ms_getTicker(), DEC);
-   Serial.println(" TestTimeoutFunc 5.5 sec");
+   ser->print(ms_getTicker(), DEC);
+   ser->println(" TestTimeoutFunc 5.5 sec");
 }
 
 
 void TestTimeoutFunc10(void) {
    tp3.attach(callback(&TestTimeoutFunc10), 10000);
-   Serial.print(ms_getTicker(), DEC);
-   Serial.println(" TestTimeoutFunc 10 sec");
+   ser->print(ms_getTicker(), DEC);
+   ser->println(" TestTimeoutFunc 10 sec");
 }
 
 
@@ -64,7 +67,7 @@ void TestTimeoutFunc1m(void) {
 }
 
 void SwitchInput(void) {
-   Serial.print(ms_getTicker(), DEC);
-   Serial.println(" SwitchInput");  
+   ser->print(ms_getTicker(), DEC);
+   ser->println(" SwitchInput");  
    led = !led;
 }

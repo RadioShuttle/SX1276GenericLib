@@ -9,7 +9,12 @@
 using namespace std;
 
 #include "arduino-mbed.h"
+#include "arduino-util.h"
 
+Stream *ser;
+void InitSerial(Stream *serial) {
+    ser = serial;
+}
 
 static void pinInt00(void);
 static void pinInt01(void);
@@ -343,7 +348,7 @@ void TCC2_Handler()
      */
     if (t->INTFLAG.bit.OVF == 1) {  // A overflow caused the interrupt
         t->INTFLAG.bit.OVF = 1;    // writing a one clears the flag ovf flag
-        // Serial.println("T_OVF");
+        // ser->println("T_OVF");
 
         /*
          * reading the count once is needed, otherwise
@@ -358,7 +363,7 @@ void TCC2_Handler()
     }
     if (t->INTFLAG.bit.MC0 == 1) {  // A compare to cc0 caused the interrupt
         t->INTFLAG.bit.MC0 = 1;    // writing a one clears the MCO (match capture) flag
-        // Serial.println("T_MC0");
+        // ser->println("T_MC0");
     }
 }
 
@@ -500,9 +505,9 @@ static void startTimer(Tcc *t, uint64_t delay_ns)
     t->CTRLA.reg |= TCC_CTRLA_ENABLE ; // Enable TC
     while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
 #if 0
-    Serial.print(ms_getTicker(), DEC);
-    Serial.print(" startTimer: nCounts=");
-    Serial.println(nCounts, DEC);
+    ser->print(ms_getTicker(), DEC);
+    ser->print(" startTimer: nCounts=");
+    ser->println(nCounts, DEC);
 #endif
 }
 
@@ -527,7 +532,7 @@ void TCC2_Handler()
     }
     
     if (t->INTFLAG.bit.MC0 == 1) {  // A compare to cc0 caused the interrupt
-        //Serial.print("MC0\r\n");
+        //ser->print("MC0\r\n");
         t->INTFLAG.bit.MC0 = 1;    // writing a one clears the MCO (match capture) flag
     }
 
@@ -622,6 +627,21 @@ Timeout::restart()
 
 void sleep(void)
 {
+    /*
+     * If we use the native USB port our Serial is SerialUSB
+     * and if the SerialUSB and connected we should
+     * not enter into sleep mode because this kills the Arduino USB emulation
+     */
+#if 0
+    if (ser && ser == (Stream *)&SerialUSB) {
+        if (1) {
+        	__WFI();
+        	return;
+        }
+        USB->CTRLA.bit.ENABLE = 0;
+    }
+#endif
+
 #if  1 // (SAMD20 || SAMD21)
     /* Errata: Make sure that the Flash does not power all the way down
      * when in sleep mode. */

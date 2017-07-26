@@ -28,6 +28,9 @@ typedef int PinName;
  #define MYdigitalPinToInterrupt(x)	(x)
 #endif
 
+void InitSerial(Stream *serial);
+extern Stream *ser;
+
 
 enum PinMode {
     PullUp = 1,
