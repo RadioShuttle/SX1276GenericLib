@@ -632,16 +632,15 @@ void sleep(void)
      * and if the SerialUSB and connected we should
      * not enter into sleep mode because this kills the Arduino USB emulation
      */
-#if 0
     if (ser && ser == (Stream *)&SerialUSB) {
-        if (1) {
-        	__WFI();
-        	return;
-        }
-        USB->CTRLA.bit.ENABLE = 0;
+        __WFI();
+        return;
+        // USB->CTRLA.bit.ENABLE = 0;
+        // USB->HOST.CTRLA.reg = 0;
+        // USB->HOST.CTRLA.bit.ENABLE &= USB_CTRLA_ENABLE;
     }
-#endif
 
+    
 #if  1 // (SAMD20 || SAMD21)
     /* Errata: Make sure that the Flash does not power all the way down
      * when in sleep mode. */
