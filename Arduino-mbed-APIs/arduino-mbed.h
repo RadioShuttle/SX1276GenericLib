@@ -31,6 +31,33 @@ typedef int PinName;
 void InitSerial(Stream *serial);
 extern Stream *ser;
 
+/*
+ * Arduino_d21.cpp
+ */
+extern void startTimer(Tcc *t, uint64_t delay_ns);
+extern void stopTimer(Tcc *t);
+extern uint64_t ns_getTicker(void);
+extern Tcc *getTimeout_tcc(void);
+
+
+extern void sleep(void);
+extern void deepsleep(void);
+
+#define MAX_TIMEOUTS	10
+class Timeout;
+struct TimeoutVector {
+    Timeout *timer;
+};
+extern TimeoutVector TimeOuts[];
+
+
+/*
+ * Arduino-mbed.cpp
+ */
+extern uint32_t s_getTicker(void);
+extern uint32_t ms_getTicker(void);
+extern uint32_t us_getTicker(void);
+
 
 enum PinMode {
     PullUp = 1,
@@ -213,12 +240,6 @@ private:
     Callback<void()> _func;
 };
 
-extern uint32_t s_getTicker(void);
-extern uint32_t ms_getTicker(void);
-extern uint32_t us_getTicker(void);
-extern uint64_t ns_getTicker(void);
-extern void sleep(void);
-extern void deepsleep(void);
 
 
 class Timer {
