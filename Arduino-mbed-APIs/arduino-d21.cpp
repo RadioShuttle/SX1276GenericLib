@@ -19,6 +19,32 @@ using namespace std;
  * __SAMD21G18A__ is Genuino Zero-Board (compatible with the LoRa board)
  */
 
+int
+CPUID(uint8_t *buf, int maxSize, uint32_t xorval)
+{
+    int f1 = 0x55d5f559; // D21 128-bit UUID, first 32 bit.
+    int f2 = 0x55d5f515; // D21 128-bit UUID, next 96 bit.
+
+    if (maxSize >= 16 ) {
+        int cnt = 0;
+        int fa = f1 ^ xorval;
+        uint32_t *first = (uint32_t *)fa;
+        uint8_t *dst = (uint8_t *)first;
+        for (int i = 0; i < sizeof(uint32_t); i++)
+        	*buf++ = *dst++;
+        cnt += 4;
+        int fb = f2 ^ xorval;
+        uint32_t *next = (uint32_t *)fb;
+        dst = (uint8_t *)next;
+        for (int i = 0; i < sizeof(uint32_t)*3; i++)
+        	*buf++ = *dst++;
+        cnt += 12;
+        return cnt;
+    }
+    
+    return 0;
+}
+
 /*
  * see tcc.h is automatically included from:
  * Arduino15/packages/arduino/tools/CMSIS-Atmel/1.1.0/CMSIS/

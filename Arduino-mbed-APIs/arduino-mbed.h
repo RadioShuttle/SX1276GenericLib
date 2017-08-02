@@ -38,6 +38,7 @@ extern void startTimer(Tcc *t, uint64_t delay_ns);
 extern void stopTimer(Tcc *t);
 extern uint64_t ns_getTicker(void);
 extern Tcc *getTimeout_tcc(void);
+extern int CPUID(uint8_t *buf, int maxSize, uint32_t xorval);
 
 
 extern void sleep(void);
