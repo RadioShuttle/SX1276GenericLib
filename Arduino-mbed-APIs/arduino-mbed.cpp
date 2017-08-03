@@ -175,6 +175,19 @@ static void pinInt46(void) { InterruptIn::_irq_handler(intPtrTable[46].context);
 static void pinInt47(void) { InterruptIn::_irq_handler(intPtrTable[47].context); }
 
 
+void wait_ms(uint32_t ms)
+{
+    uint32_t start = ms_getTicker();
+    
+    while (true) {
+        uint32_t t = ms_getTicker();
+        if (t < start) // warp.
+            start = 0;
+        if (t > (start + ms))
+            break;
+    }
+}
+
 struct TimeoutVector TimeOuts[MAX_TIMEOUTS];
 
 void

@@ -19,7 +19,6 @@
 
 typedef int PinName;
 #define NC	-1
-#define	wait_ms	delay
 /* we need to redefine out dprintf because stdio.h uses the same name */
 #define dprint	dxprintf
 #if ARDUINO_SAMD_VARIANT_COMPLIANCE >= 10606
@@ -58,6 +57,7 @@ extern TimeoutVector TimeOuts[];
 extern uint32_t s_getTicker(void);
 extern uint32_t ms_getTicker(void);
 extern uint32_t us_getTicker(void);
+extern void wait_ms(uint32_t ms);
 
 
 enum PinMode {
