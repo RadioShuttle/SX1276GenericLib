@@ -14,11 +14,18 @@ extern Stream *ser;
 void
 dprintf(const char *format, ...)
 {
+    static volatile bool busy;
+    if (busy)
+        return;
+    busy = true;
+    
     int secs = s_getTicker();
     int s = secs % 60;
     int m = secs / 60;
     int h = secs / 3600;
-    int us = us_getTicker() & ((1000000)-1);
+    int us = us_getTicker();
+    while(us > 999999)
+        us /= 10;	// get it to 6 digits only
 
     snprintf(tmpbuf, sizeof(tmpbuf)-1, "%02d:%02d:%02d.%.06d ", h, m, s, us);
     ser->write(tmpbuf, (int) sizeof "00:00:34.3436868 " -1);
@@ -31,6 +38,7 @@ dprintf(const char *format, ...)
 	tmpbuf[len+2] = 0;
 	ser->write(tmpbuf, len+3);
 	va_end(arg);
+    busy = false;
 }
 
 void

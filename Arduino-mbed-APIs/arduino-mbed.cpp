@@ -241,6 +241,8 @@ Timeout::insert(void)
     noInterrupts();
     for (int i = 0; i < MAX_TIMEOUTS-1; i++) {
         struct TimeoutVector *tvp = &TimeOuts[i];
+        if (tvp->timer == this) // already here, timer has been restartet.
+            break;
         if (tvp->timer == NULL) {
             tvp->timer = this;
             break;
