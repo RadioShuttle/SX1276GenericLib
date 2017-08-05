@@ -949,8 +949,8 @@ bool SX1276::RxSignalPending()
         case MODEM_FSK:
             break;
         case MODEM_LORA:
-            if (Read(REG_LR_MODEMSTAT) & RFLR_MODEMSTAT_SIGNAL_DETECTED)
-                return true;
+			if (Read(REG_LR_MODEMSTAT) & (RFLR_MODEMSTAT_SIGNAL_DETECTED|RFLR_MODEMSTAT_SIGNAL_SYNCRONIZED|RFLR_MODEMSTAT_HEADERINFO_VALID|RFLR_MODEMSTAT_MODEM_CLEAR))
+	            return true;
             break;
     }
     return false;

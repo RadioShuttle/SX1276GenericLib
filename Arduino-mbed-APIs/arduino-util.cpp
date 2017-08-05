@@ -23,9 +23,7 @@ dprintf(const char *format, ...)
     int s = secs % 60;
     int m = secs / 60;
     int h = secs / 3600;
-    int us = us_getTicker();
-    while(us > 999999)
-        us /= 10;	// get it to 6 digits only
+    int us = us_getTicker() % 1000000;
 
     snprintf(tmpbuf, sizeof(tmpbuf)-1, "%02d:%02d:%02d.%.06d ", h, m, s, us);
     ser->write(tmpbuf, (int) sizeof "00:00:34.3436868 " -1);
