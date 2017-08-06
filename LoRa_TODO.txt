@@ -44,3 +44,7 @@ Done:
   level protocols
 - Added initial Arduino support, needs more testing/completion.
 - Support for Arduino completed, initial version works.
+- Added GetFrequency support
+  The Murata’s Frequency shift using an TCXO us about 58 Hz
+  The RFM95 against Murata is about 3300 Hz
+  RFM95 against RFM95 testing will follow.

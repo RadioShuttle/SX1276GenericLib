@@ -632,10 +632,10 @@ uint32_t SX1276::TimeOnAir( RadioModems_t modem, int16_t pktLen )
             case LORA_BANKWIDTH_20kHz: // 20.8 kHz
                 bw = 208e2;
                 break;
-            case LORA_BANKWIDTH_31kHz: // 31.2 kHz
+            case LORA_BANKWIDTH_31kHz: // 31.25 kHz
         	    bw = 312e2;
                 break;
-            case LORA_BANKWIDTH_41kHz: // 41.4 kHz
+            case LORA_BANKWIDTH_41kHz: // 41.7 kHz
                 bw = 414e2;
                 break;
             case LORA_BANKWIDTH_62kHz: // 62.5 kHz
@@ -851,7 +851,7 @@ void SX1276::Rx( uint32_t timeout )
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 20.83e3 );
                     break;
-                case LORA_BANKWIDTH_31kHz: // 31.2 kHz
+                case LORA_BANKWIDTH_31kHz: // 31.25 kHz
                     Write( REG_LR_TEST2F, 0x44 );
                     SetChannel(this->settings.Channel + 31.25e3 );
                     break;
@@ -1112,6 +1112,36 @@ int16_t SX1276::GetRssi( RadioModems_t modem )
     }
     return rssi;
 }
+
+int32_t SX1276::GetFrequencyError(RadioModems_t modem )
+{
+    int32_t val = 0;
+    
+    if (modem != MODEM_LORA)
+        return 0;
+    
+    val = (Read(REG_LR_FEIMSB) & 0b1111) << 16; // high word, 4 valid bits only
+    val |= (Read(REG_LR_FEIMID) << 8) | Read(REG_LR_FEILSB); // high byte, low byte
+    if (val & 0x8000) //sconvert ign bit
+        val |= 0xfff00000;
+    
+    int32_t bandwidth = 0;
+    for (int i = 0; i < (int)(sizeof(LoRaBandwidths) / sizeof(BandwidthMap)) -1; i++ ) {
+        if (LoRaBandwidths[i].RegValue == this->settings.LoRa.Bandwidth) {
+            bandwidth = LoRaBandwidths[i].bandwidth;
+            break;
+        }
+    }
+    if (!bandwidth)
+    	return 0;
+    
+    float bandWidthkHz = (float)bandwidth/1000;
+    
+    int32_t hz = (((float)val * (float)(1<<24)) / ((float)XTAL_FREQ)) * (bandWidthkHz / 500.0);
+        
+    return hz;
+}
+
 
 void SX1276::SetOpMode( uint8_t opMode )
 {

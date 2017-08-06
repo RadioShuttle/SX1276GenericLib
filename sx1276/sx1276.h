@@ -384,7 +384,14 @@ public:
      * @retval rssiValue Current RSSI value in [dBm]
      */
     virtual int16_t GetRssi ( RadioModems_t modem );
-
+    
+    /*!
+     * @brief Reads the current frequency error
+     *
+     * @retval frequency error value in [Hz]
+     */
+    virtual int32_t GetFrequencyError( RadioModems_t modem );
+    
     /*!
      * @brief Writes the radio register at the specified address
      *
