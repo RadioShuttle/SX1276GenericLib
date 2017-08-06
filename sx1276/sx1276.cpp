@@ -55,12 +55,12 @@ const SX1276::BandwidthMap SX1276::LoRaBandwidths[] =
     {  10400, 1 }, // 10.4 kHz requires TCXO
     {  15600, 2 }, // 15.6 kHz requires TCXO
     {  20800, 3 }, // 20.8 kHz requires TCXO
-    {  31200, 4 }, // 31.2 kHz requires TCXO
-    {  41400, 5 }, // 41.4 kHz requires TCXO
+    {  31250, 4 }, // 31.25 kHz requires TCXO
+    {  41700, 5 }, // 41.7 kHz requires TCXO
     {  62500, 6 }, // 62.5 kHz requires TCXO
-    { 125000, 7 }, // the LoRa protocol default
-    { 250000, 8 },
-    { 500000, 9 },
+    { 125000, 7 }, // 125 kHz the LoRa protocol default
+    { 250000, 8 }, // 250 kHz
+    { 500000, 9 }, // 500 kHz
     { 600000, 10 },  // Invalid Bandwidth, reserved
  };
 
