@@ -30,13 +30,13 @@ CPUID(uint8_t *buf, int maxSize, uint32_t xorval)
         int fa = f1 ^ xorval;
         uint32_t *first = (uint32_t *)fa;
         uint8_t *dst = (uint8_t *)first;
-        for (int i = 0; i < sizeof(uint32_t); i++)
+        for (int i = 0; i < (int)sizeof(uint32_t); i++)
         	*buf++ = *dst++;
         cnt += 4;
         int fb = f2 ^ xorval;
         uint32_t *next = (uint32_t *)fb;
         dst = (uint8_t *)next;
-        for (int i = 0; i < sizeof(uint32_t)*3; i++)
+        for (int i = 0; i < (int)sizeof(uint32_t)*3; i++)
         	*buf++ = *dst++;
         cnt += 12;
         return cnt;
@@ -369,28 +369,28 @@ void sleep(void)
      * and if the SerialUSB and connected we should
      * not enter into sleep mode because this kills the Arduino USB emulation
      */
-    if (ser && ser == (Stream *)&SerialUSB) {
-        __WFI();
-        return;
+    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
+    uint32_t saved_ms = ms_getTicker();
+
+    if (SerialUSB_active) {
+        __DSB(); // ensures the completion of memory accesses
+        __WFI(); // wait for interrupt
         // USB->CTRLA.bit.ENABLE = 0;
         // USB->HOST.CTRLA.reg = 0;
         // USB->HOST.CTRLA.bit.ENABLE &= USB_CTRLA_ENABLE;
-    }
-
-    
-#if  1 // (SAMD20 || SAMD21)
-    /* Errata: Make sure that the Flash does not power all the way down
-     * when in sleep mode. */
-    NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
+    } else {
+#if  0 // (SAMD20 || SAMD21)
+        /* Errata: Make sure that the Flash does not power all the way down
+         * when in sleep mode. */
+        NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
 #endif
-    uint32_t saved_ms = ms_getTicker();
-    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
-    
-    SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;	// clear deep sleep
-    PM->SLEEP.reg = 2; // SYSTEM_SLEEPMODE_IDLE_2 IDLE 2 sleep mode.
-
-    __DSB(); // ensures the completion of memory accesses
-    __WFI(); // wait for interrupt
+        
+        SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;	// clear deep sleep
+        PM->SLEEP.reg = 2; // SYSTEM_SLEEPMODE_IDLE_2 IDLE 2 sleep mode.
+        
+        __DSB(); // ensures the completion of memory accesses
+        __WFI(); // wait for interrupt
+    }
     
     int count = ms_getTicker() - saved_ms;
     if (count > 0) { // update the Arduino Systicks

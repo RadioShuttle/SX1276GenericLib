@@ -27,8 +27,9 @@ typedef int PinName;
  #define MYdigitalPinToInterrupt(x)	(x)
 #endif
 
-void InitSerial(Stream *serial);
+void InitSerial(Stream *serial, int timeout_ms);
 extern Stream *ser;
+extern bool SerialUSB_active;
 
 /*
  * Arduino_d21.cpp

@@ -12,8 +12,25 @@ using namespace std;
 #include "arduino-util.h"
 
 Stream *ser;
-void InitSerial(Stream *serial) {
+bool SerialUSB_active = false;
+
+void InitSerial(Stream *serial, int timeout_ms) {
     ser = serial;
+    if (serial == (Stream *)&SerialUSB) {
+        uint32_t start = ms_getTicker();
+
+        SerialUSB_active = true;
+        while(!SerialUSB) {
+            if (ms_getTicker() > start + timeout_ms) {
+                SerialUSB_active = false;
+                break;
+            }
+        }
+        if (!SerialUSB_active) {
+            USB->DEVICE.CTRLA.bit.SWRST = 1; // disconnect the USB Port
+            while (USB->DEVICE.CTRLA.bit.SWRST == 1);
+        }
+    }
 }
 
 static void pinInt00(void);
