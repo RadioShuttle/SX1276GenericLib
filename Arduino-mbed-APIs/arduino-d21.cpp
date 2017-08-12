@@ -375,9 +375,6 @@ void sleep(void)
     if (SerialUSB_active) {
         __DSB(); // ensures the completion of memory accesses
         __WFI(); // wait for interrupt
-        // USB->CTRLA.bit.ENABLE = 0;
-        // USB->HOST.CTRLA.reg = 0;
-        // USB->HOST.CTRLA.bit.ENABLE &= USB_CTRLA_ENABLE;
     } else {
 #if  0 // (SAMD20 || SAMD21)
         /* Errata: Make sure that the Flash does not power all the way down
@@ -401,22 +398,28 @@ void sleep(void)
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // enable SysTick
 }
 
+/*
+ * TODO
+ * Check if we need to disable the USB GCLK->CLKCTRL.reg (see USBCore.cpp)
+ * Check what else we need to disable?
+ */
+
 void deepsleep(void)
 {
-#if  1 // (SAMD20 || SAMD21)
+#if  0 // (SAMD20 || SAMD21)
     /* Errata: Make sure that the Flash does not power all the way down
      * when in sleep mode. */
     NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
 #endif
 
-    SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
+    // SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
     
     SCB->SCR |=  SCB_SCR_SLEEPDEEP_Msk; // standby mode
     
     __DSB(); // ensures the completion of memory accesses
     __WFI(); // wait for interrupt
 
-    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // enable SysTick
+    // SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // enable SysTick
 }
 
 #endif // D21 TCC Timer, sleep, etc-
