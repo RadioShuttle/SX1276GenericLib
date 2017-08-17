@@ -411,15 +411,12 @@ void deepsleep(void)
      * when in sleep mode. */
     NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
 #endif
-
-    // SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // disbale SysTick
     
     SCB->SCR |=  SCB_SCR_SLEEPDEEP_Msk; // standby mode
+    //EIC->WAKEUP.bit.WAKEUPEN3 = 1; // enable wakeup on Pin 12/PA19/EXTINT[3] see variants.h
     
     __DSB(); // ensures the completion of memory accesses
     __WFI(); // wait for interrupt
-
-    // SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; // enable SysTick
 }
 
 #endif // D21 TCC Timer, sleep, etc-
