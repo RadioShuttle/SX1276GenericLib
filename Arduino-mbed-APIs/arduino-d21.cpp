@@ -411,9 +411,14 @@ void deepsleep(void)
      * when in sleep mode. */
     NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
 #endif
+    if (!(GCLK->CLKCTRL.reg & GCLK_CLKCTRL_GEN_GCLK1)) {
+        // Configure EIC to use GCLK1 which uses XOSC32K
+        // This has to be done after the first call to attachInterrupt()
+        // GCLK->CLKCTRL.reg = GCLK_CLKCTRL_ID(GCM_EIC) | GCLK_CLKCTRL_GEN_GCLK1 | GCLK_CLKCTRL_CLKEN;
+    }
     
     SCB->SCR |=  SCB_SCR_SLEEPDEEP_Msk; // standby mode
-    //EIC->WAKEUP.bit.WAKEUPEN3 = 1; // enable wakeup on Pin 12/PA19/EXTINT[3] see variants.h
+	// EIC->WAKEUP.bit.WAKEUPEN3 = 1; // enable wakeup on Pin 12/PA19/EXTINT[3] see variants.h
     
     __DSB(); // ensures the completion of memory accesses
     __WFI(); // wait for interrupt
