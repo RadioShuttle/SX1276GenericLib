@@ -1121,8 +1121,8 @@ int32_t SX1276::GetFrequencyError(RadioModems_t modem )
         return 0;
     
     val = (Read(REG_LR_FEIMSB) & 0b1111) << 16; // high word, 4 valid bits only
-    val |= (Read(REG_LR_FEIMID) << 8) | Read(REG_LR_FEILSB); // high byte, low byte
-    if (val & 0x8000) //sconvert ign bit
+    val |= ((Read(REG_LR_FEIMID) << 8) | Read(REG_LR_FEILSB)); // high byte, low byte
+    if (val & 0x80000) //convert sign bit
         val |= 0xfff00000;
     
     int32_t bandwidth = 0;
