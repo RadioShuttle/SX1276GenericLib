@@ -235,6 +235,34 @@ InterruptIn::fall(Callback<void()> func) {
     }
 }
 
+void
+InterruptIn::high(Callback<void()> func) {
+    if (func) {
+        _func = func;
+        intPtrTable[_gpioPin].context = this;
+        attachInterrupt(MYdigitalPinToInterrupt(_gpioPin), intPtrTable[_gpioPin].func, HIGH);
+    } else {
+        _func = InterruptIn::donothing;
+        intPtrTable[_gpioPin].context = NULL;
+        detachInterrupt(_gpioPin);
+    }
+}
+
+void
+InterruptIn::low(Callback<void()> func) {
+    if (func) {
+        _func = func;
+        intPtrTable[_gpioPin].context = this;
+        attachInterrupt(MYdigitalPinToInterrupt(_gpioPin), intPtrTable[_gpioPin].func, LOW);
+    } else {
+        _func = InterruptIn::donothing;
+        intPtrTable[_gpioPin].context = NULL;
+        detachInterrupt(_gpioPin);
+    }
+}
+
+
+
 
 uint32_t s_getTicker(void)
 {

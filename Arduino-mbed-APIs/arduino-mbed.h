@@ -227,6 +227,10 @@ public:
     
     void fall(Callback<void()> func);
     
+    void high(Callback<void()> func);
+    
+    void low(Callback<void()> func);
+
     void mode(PinMode pull) {
         switch(pull) {
             case PullUp:
