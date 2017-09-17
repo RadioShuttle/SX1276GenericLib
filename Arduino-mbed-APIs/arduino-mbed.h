@@ -27,7 +27,8 @@ typedef int PinName;
  #define MYdigitalPinToInterrupt(x)	(x)
 #endif
 
-void InitSerial(Stream *serial, int timeout_ms);
+class DigitalOut;
+void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led);
 extern Stream *ser;
 extern bool SerialUSB_active;
 

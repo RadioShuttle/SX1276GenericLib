@@ -101,6 +101,10 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
 
 SX1276Generic::~SX1276Generic()
 {
+    txTimeoutTimer.detach();
+    rxTimeoutTimer.detach();
+    rxTimeoutSyncWord.detach();
+    
     if (_antSwitch)
     	delete _antSwitch;
     if (_antSwitchTX)
@@ -112,6 +116,7 @@ SX1276Generic::~SX1276Generic()
         *_tcxo = 0;
         delete (_tcxo);
     }
+    Reset(); // to put chip back into fresh state
     delete _reset;
     delete _spi;
     delete _nss;

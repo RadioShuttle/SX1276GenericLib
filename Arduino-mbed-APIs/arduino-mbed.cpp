@@ -12,10 +12,13 @@ using namespace std;
 #include "arduino-util.h"
 
 Stream *ser;
-bool SerialUSB_active = false;
+bool SerialUSB_active;
 
-void InitSerial(Stream *serial, int timeout_ms) {
+void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led) {
     ser = serial;
+    SerialUSB_active = true;
+    if (!timeout_ms)
+        return;
     if (serial == (Stream *)&SerialUSB) {
         uint32_t start = ms_getTicker();
 
@@ -29,6 +32,15 @@ void InitSerial(Stream *serial, int timeout_ms) {
         if (!SerialUSB_active) {
             USB->DEVICE.CTRLA.bit.SWRST = 1; // disconnect the USB Port
             while (USB->DEVICE.CTRLA.bit.SWRST == 1);
+            if (led) {
+                for (int i = 0; i < 10; i++) {
+                    // lets blink the LED to show that SerialUSB is off.
+                    *led = 1;
+                    delay(80);
+                    *led = 0;
+                    delay(80);
+                }
+            }
         }
     }
 }
