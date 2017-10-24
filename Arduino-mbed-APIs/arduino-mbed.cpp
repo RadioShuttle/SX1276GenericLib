@@ -14,7 +14,7 @@ using namespace std;
 Stream *ser;
 bool SerialUSB_active;
 
-void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led) {
+void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSerial) {
     ser = serial;
     SerialUSB_active = true;
     if (!timeout_ms)
@@ -23,6 +23,16 @@ void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led) {
         uint32_t start = ms_getTicker();
 
         SerialUSB_active = true;
+        
+        if (waitForSerial) {
+            while(!SerialUSB) {
+                *led = 1;
+                delay(80);
+                *led = 0;
+                delay(80);
+            }
+            return;
+        }
         while(!SerialUSB) {
             if (ms_getTicker() > start + timeout_ms) {
                 SerialUSB_active = false;
@@ -288,10 +298,11 @@ uint32_t s_getTicker(void)
 
 uint32_t ms_getTicker(void)
 {
-    uint32_t us = us_getTicker();
+    long long ns = ns_getTicker();
+    ns /= (long long)1000000; // to ms
     
-    us /= 1000; // to ms
-    return us;
+    uint32_t ms = ns & 0xffffffff;
+    return ms;
 }
 
 uint32_t us_getTicker(void)
