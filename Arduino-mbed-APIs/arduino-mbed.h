@@ -28,7 +28,7 @@ typedef int PinName;
 #endif
 
 class DigitalOut;
-void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led);
+void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSerial);
 extern Stream *ser;
 extern bool SerialUSB_active;
 
@@ -241,6 +241,12 @@ public:
                 pinMode(_gpioPin, INPUT_PULLDOWN);
                 break;
         }
+    }
+    int read () {
+        if (digitalRead(_gpioPin) == HIGH)
+            return 0;
+        else
+            return 1;
     }
 private:
     int _gpioPin;
