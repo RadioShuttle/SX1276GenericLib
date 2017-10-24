@@ -21,9 +21,9 @@ dprintf(const char *format, ...)
     
     int secs = s_getTicker();
     int s = secs % 60;
-    int m = secs / 60;
-    int h = secs / 3600;
-    int us = us_getTicker() % 1000000;
+    int m = (secs / 60) % 60;
+    int h = (secs / 3600) % 24;
+    uint32_t us = us_getTicker() % (uint32_t)1000000;
 
     snprintf(tmpbuf, sizeof(tmpbuf)-1, "%02d:%02d:%02d.%.06d ", h, m, s, us);
     ser->write(tmpbuf, (int) sizeof "00:00:34.3436868 " -1);
