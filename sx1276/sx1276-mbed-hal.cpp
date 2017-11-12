@@ -170,14 +170,28 @@ void SX1276Generic::IoIrqInit( DioIrqHandler *irqHandlers )
 {
     if (_dio0)
     	_dio0->rise(callback(this, static_cast< Trigger > ( irqHandlers[0] )));
+    else
+        irqHandlers[0] = NULL;
+    
     if (_dio1)
     	_dio1->rise(callback(this, static_cast< Trigger > ( irqHandlers[1] )));
+ 	else
+    	irqHandlers[1] = NULL;
+    
     if (_dio2)
     	_dio2->rise(callback(this, static_cast< Trigger > ( irqHandlers[2] )));
+    else
+        irqHandlers[2] = NULL;
+    
     if (_dio3)
     	_dio3->rise(callback(this, static_cast< Trigger > ( irqHandlers[3] )));
+    else
+        irqHandlers[3] = NULL;
+    
     if (_dio4)
         _dio4->rise(callback(this, static_cast< Trigger > ( irqHandlers[4] )));
+	else
+        irqHandlers[4] = NULL;
 }
 
 void SX1276Generic::IoDeInit( void )

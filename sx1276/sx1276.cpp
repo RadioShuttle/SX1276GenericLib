@@ -1039,8 +1039,13 @@ void SX1276::StartCad( void )
                   						//RFLR_IRQFLAGS_CADDETECTED
                                         );
 
-            // DIO3=CADDone
-			Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_00 );
+            if (this->dioIrq[3]) {
+                // DIO3=CADDone
+                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_00 );
+            } else {
+                // DIO0=CADDone
+                Write( REG_DIOMAPPING1, ( Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
+            }
 
             this->settings.State = RF_CAD;
             SetOpMode( RFLR_OPMODE_CAD );
@@ -1495,6 +1500,33 @@ void SX1276::OnDio0Irq( void )
                 break;
             }
             break;
+        case RF_CAD:
+            // CadDone interrupt
+            switch( this->settings.Modem ) {
+            case MODEM_LORA:
+            {
+                if( ( Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
+                {
+                    // Clear Irq
+                    Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
+                    if (this->RadioEvents && this->RadioEvents->CadDone)
+                    {
+                        this->RadioEvents->CadDone(this, this->RadioEvents->userThisPtr, this->RadioEvents->userData, true );
+                    }
+                } else {
+                    // Clear Irq
+                    Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
+                    if (this->RadioEvents && this->RadioEvents->CadDone)
+                    {
+                        this->RadioEvents->CadDone(this, this->RadioEvents->userThisPtr, this->RadioEvents->userData, false );
+                    }
+                }
+            }
+            case MODEM_FSK:
+            default:
+        	this->settings.State = RF_IDLE;
+            	break;
+        }
         default:
             break;
     }
