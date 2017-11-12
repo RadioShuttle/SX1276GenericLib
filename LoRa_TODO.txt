@@ -49,3 +49,5 @@ Done:
   The RFM95 against Murata is about 3300 Hz
   RFM95 against RFM95 testing will follow.
 - Fixed calculation of the frequency error with negative numbers
+- Enhanced CadDone support to use DIO0 interrupt when DIO3 is NC.
+  This means for RadioShuttle LoRa we just need DIO0
