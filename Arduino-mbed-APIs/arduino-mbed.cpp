@@ -11,6 +11,12 @@ using namespace std;
 #include "arduino-mbed.h"
 #include "arduino-util.h"
 
+#ifdef ARDUINO_SAMD_FEATHER_M0
+#define SERIALUSB	Serial
+#else
+#define SERIALUSB	SerialUSB
+#endif
+
 Stream *ser;
 bool SerialUSB_active;
 
@@ -19,13 +25,13 @@ void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSer
     SerialUSB_active = true;
     if (!timeout_ms)
         return;
-    if (serial == (Stream *)&SerialUSB) {
+    if (serial == (Stream *)&SERIALUSB) {
         uint32_t start = ms_getTicker();
 
         SerialUSB_active = true;
         
         if (waitForSerial) {
-            while(!SerialUSB) {
+            while(!SERIALUSB) {
                 *led = 1;
                 delay(80);
                 *led = 0;
@@ -33,7 +39,7 @@ void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSer
             }
             return;
         }
-        while(!SerialUSB) {
+        while(!SERIALUSB) {
             if (ms_getTicker() > start + timeout_ms) {
                 SerialUSB_active = false;
                 break;
@@ -44,7 +50,7 @@ void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSer
             while (USB->DEVICE.CTRLA.bit.SWRST == 1);
             if (led) {
                 for (int i = 0; i < 10; i++) {
-                    // lets blink the LED to show that SerialUSB is off.
+                    // lets blink the LED to show that Serial over USB is off.
                     *led = 1;
                     delay(80);
                     *led = 0;
