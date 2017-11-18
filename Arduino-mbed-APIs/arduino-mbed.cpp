@@ -22,6 +22,7 @@ bool SerialUSB_active;
 
 void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSerial) {
     ser = serial;
+#ifdef ARDUINO_SAMD_ZERO
     SerialUSB_active = true;
     if (!timeout_ms)
         return;
@@ -59,6 +60,11 @@ void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSer
             }
         }
     }
+#elif ARDUINO_ARCH_ESP32
+	SerialUSB_active = false;
+#else
+#eror "unkown MCU"
+#endif
 }
 
 static void pinInt00(void);
@@ -356,7 +362,7 @@ Timeout::remove(void)
 void
 Timeout::restart()
 {
-    Tcc *t = getTimeout_tcc();
+    TIMER_REF *t = getTimeoutTimer();
     uint64_t timeout = ~0;
     
     /*

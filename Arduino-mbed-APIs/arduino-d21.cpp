@@ -262,12 +262,10 @@ static uint32_t getTimerCount(Tcc *t)
     return count;
 }
 
-
-Tcc *getTimeout_tcc(void)
+TIMER_REF *getTimeoutTimer(void)
 {
     return TCC_data[USE_TCC_TIMEOUT].tcc_ptr;
 }
-
 
 void stopTimer(Tcc *t)
 {
@@ -424,6 +422,6 @@ void deepsleep(void)
     __WFI(); // wait for interrupt
 }
 
-#endif // D21 TCC Timer, sleep, etc-
+#endif // D21 TCC Timer, sleep, etc.
 
 #endif // ARDUINO

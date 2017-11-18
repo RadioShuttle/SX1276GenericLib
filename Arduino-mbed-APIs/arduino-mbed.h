@@ -27,21 +27,27 @@ typedef int PinName;
  #define MYdigitalPinToInterrupt(x)	(x)
 #endif
 
+#ifdef ARDUINO_ARCH_ESP32
+typedef int	TIMER_REF;
+#elif ARDUINO_SAMD_ZERO
+typedef Tcc TIMER_REF;
+#else
+#error "unkown platform"
+#endif
+
 class DigitalOut;
 void InitSerial(Stream *serial, int timeout_ms, DigitalOut *led, bool waitForSerial);
 extern Stream *ser;
 extern bool SerialUSB_active;
 
 /*
- * Arduino_d21.cpp
+ * Arduino_d21.cpp Arduino_ESP32.cpp
  */
-extern void startTimer(Tcc *t, uint64_t delay_ns);
-extern void stopTimer(Tcc *t);
+extern void startTimer(TIMER_REF *t, uint64_t delay_ns);
+extern void stopTimer(TIMER_REF *t);
+extern TIMER_REF *getTimeoutTimer(void);
 extern uint64_t ns_getTicker(void);
-extern Tcc *getTimeout_tcc(void);
 extern int CPUID(uint8_t *buf, int maxSize, uint32_t xorval);
-
-
 extern void sleep(void);
 extern void deepsleep(void);
 
@@ -148,6 +154,10 @@ public:
         _mosi = mosi;
         _miso = miso;
         _sclk = sclk;
+#ifdef ARDUINO_ARCH_ESP32 // TODO
+        if (1)
+	        _spi = &SPI;
+#elif defined (ARDUINO_SAMD_ZERO)
         if (mosi == PIN_SPI_MOSI && miso == PIN_SPI_MISO && sclk == PIN_SPI_SCK)
             _spi = &SPI;
 #if SPI_INTERFACES_COUNT > 1
@@ -157,6 +167,7 @@ public:
 #if SPI_INTERFACES_COUNT > 2
         else if (mosi == PIN_SPI2_MOSI && miso == PIN_SPI2_MISO && sclk == PIN_SPI2_SCK)
             _spi = &SPI2;
+#endif
 #endif
         else {
             _spi = NULL;
