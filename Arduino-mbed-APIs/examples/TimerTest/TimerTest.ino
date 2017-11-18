@@ -7,9 +7,15 @@ void TestTimeoutFunc10(void);
 void TestTimeoutFunc1m(void);
 void SwitchInput(void);
 
+#ifdef ARDUINO_ARCH_ESP32
+#define SW0	0
+#define LED	2
+#define MYSERIAL Serial
+#else
 #define SW0   3  // switch needs pullup
 #define LED       LED_BUILTIN
 #define MYSERIAL Serial
+#endif
 
 DigitalOut led(LED);
 InterruptIn intr(SW0);
@@ -20,7 +26,7 @@ Timeout tp4;
 
 void setup() {
   MYSERIAL.begin(230400);
-  InitSerial(&MYSERIAL);
+  InitSerial(&MYSERIAL, 5000, &led, true);
 
   ser->println("TimerTest");
 
@@ -34,7 +40,7 @@ void setup() {
 }
 
 void loop() {
-  led = !led;
+  // led = !led;
 
   sleep(); // or deepsleep()
 }
