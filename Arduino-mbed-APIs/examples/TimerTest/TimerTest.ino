@@ -29,6 +29,7 @@ void setup() {
   InitSerial(&MYSERIAL, 5000, &led, true);
 
   ser->println("TimerTest");
+  ser->println("TimerTest2");
 
   tp.attach(callback(&TestTimeoutFunc), 1000);
   tp2.attach(callback(&TestTimeoutFunc55), 5500);
