@@ -10,7 +10,7 @@ using namespace std;
 
 #include "arduino-mbed.h"
 #include "arduino-util.h"
-
+#include <time.h>
 
 
 #if defined(ARDUINO_ARCH_ESP32)
@@ -60,6 +60,8 @@ struct TIMER_config {
 #define USE_TIMER_TIMEOUT	0 // 0, 1, 2 (see ESP32 docs)
 #define USE_TIMER_TICKER	1 // 0, 1, 2 (see ESP32 docs)
 #define MAX_TIMERS			3
+#define TIMER_DIVIDER		80
+#define TIMER_CLOCK			80
 
 /*
  * Calculation of ticks see timerBegin divider
@@ -102,15 +104,14 @@ uint64_t ns_getTicker(void)
     if (!initTickerDone) {
         initTimer(timerID);
         initTickerDone = true;
-        dprintf("ESP32 Revision: %d (%d MHz)\r\n", ESP.getChipRevision(), ESP.getCpuFreqMHz());
     }
     
     hw_timer_t *timer = Timer_data[USE_TIMER_TICKER].timer;
     uint64_t ns = timerRead(timer);
     uint16_t div = timerGetDivider(timer);
     ns *= div;	// get to the real clocks
-    ns /= 8; 	// 80 MHz , divide by 8 to keep more NS
-    ns *= 100; 	// us to ns equals 1000, however we divided only by 8 remaing are 1000
+    ns *= 1000; // convert micros to NS.
+    ns /= TIMER_CLOCK;	// 80 MHz clock, convert to micro seconds
     
     return ns;
 }
@@ -127,11 +128,23 @@ static void initTimer(int timerID)
     if (timerID > MAX_TIMERS-1)
         return;
     
-    cp->timer = timerBegin(timerID, 80, true);
+    cp->timer = timerBegin(timerID, TIMER_DIVIDER, true);
     timerWrite(cp->timer, 0);
-	if (timerID == USE_TIMER_TICKER)
+    if (timerID == USE_TIMER_TICKER) {
+        time_t t = time(NULL);
+        if (t > 0) {
+            struct tm mytm;
+            uint64_t tstart;
+            
+            localtime_r(&t, &mytm);
+            tstart = mytm.tm_sec + (mytm.tm_min * 60) + (mytm.tm_hour * 3600);
+            tstart *= 1000000;
+            tstart *= TIMER_CLOCK;
+            tstart /= TIMER_DIVIDER;
+            timerWrite(cp->timer, tstart);
+        }
     	timerStart(cp->timer);
-    else {
+    } else {
     	timerAttachInterrupt(cp->timer, &onTimer, true);
         timerAlarmWrite(cp->timer, TIMER_INFINITE, true);
         timerAlarmEnable(cp->timer);
@@ -142,7 +155,8 @@ static void initTimer(int timerID)
      * otherwise it will not issue any alarms
      * This affects only ESP32 rev 0
 	 */
-     delay(20);
+    if (ESP.getChipRevision() == 0)
+     	delay(20);
 }
 
 
@@ -222,6 +236,7 @@ void sleep(void)
 
 void deepsleep(void)
 {
+    // Light Sleep
     asm("waiti 0");
 }
 

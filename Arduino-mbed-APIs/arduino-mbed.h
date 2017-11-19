@@ -47,6 +47,7 @@ extern void startTimer(TIMER_REF *t, uint64_t delay_ns);
 extern void stopTimer(TIMER_REF *t);
 extern TIMER_REF *getTimeoutTimer(void);
 extern uint64_t ns_getTicker(void);
+extern void setTickerStartSecs(int secs);
 extern int CPUID(uint8_t *buf, int maxSize, uint32_t xorval);
 extern void sleep(void);
 extern void deepsleep(void);

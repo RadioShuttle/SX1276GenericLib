@@ -296,8 +296,6 @@ InterruptIn::low(Callback<void()> func) {
 }
 
 
-
-
 uint32_t s_getTicker(void)
 {
     long long ns = ns_getTicker();
@@ -327,6 +325,13 @@ uint32_t us_getTicker(void)
     return us;
 }
 
+#ifdef ARDUINO_ARCH_ESP32
+#undef	noInterrupts
+#undef	interrupts
+#define noInterrupts()	portENTER_CRITICAL(&timerLock)
+#define interrupts()	portEXIT_CRITICAL(&timerLock)
+static portMUX_TYPE timerLock = portMUX_INITIALIZER_UNLOCKED;
+#endif
 
 void
 Timeout::insert(void)

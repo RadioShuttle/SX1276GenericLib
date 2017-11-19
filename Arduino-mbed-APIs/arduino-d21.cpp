@@ -101,6 +101,13 @@ const struct TCC_config {
 uint64_t ticker_ns;
 static bool initTickerDone = false;
 
+void setTickerStartSecs(int secs)
+{
+    ticker_ns = (uint64_t)1000000 * (uint64_t)secs;
+    ticker_ns *= (uint64_t)1000;
+}
+
+
 uint64_t ns_getTicker(void)
 {
     Tcc *t = TCC_data[USE_TCC_TICKER].tcc_ptr;
