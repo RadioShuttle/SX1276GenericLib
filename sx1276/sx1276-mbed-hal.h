@@ -90,7 +90,7 @@ public:
     SX1276Generic( RadioEvents_t *events, BoardType_t board,
             PinName mosi, PinName miso, PinName sclk, PinName nss, PinName reset,
             PinName dio0, PinName dio1, PinName dio2, PinName dio3, PinName dio4, PinName dio5,
-            PinName antSwitch = NC, PinName antSwitchTX= NC, PinName antSwitchTXBoost = NC, PinName tcxo = NC);
+            PinName antSwitch = NC, PinName antSwitchTX = NC, PinName antSwitchTXBoost = NC, PinName tcxo = NC);
 
     
     SX1276Generic( RadioEvents_t *events );
