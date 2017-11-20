@@ -41,7 +41,14 @@ CPUID(uint8_t *buf, int maxSize, uint32_t xorval)
 static void initTimer(int timerID);
 void IRAM_ATTR onTimer(void);
 /*
- * The Atmel ESP32 has three 64-bit timer.
+ * The Atmel ESP32 has four 64-bit timer.
+ * At present the solution uses two timers, one for counting ticks,
+ * a second for setting alarms. This is required for the rev-0 ESP
+ *
+ * For the rev. 1 ESP a single timer will work for counting as well for 
+ * setting the alarm via timerAlarmWrite(timer, timerRead(timer) + 1000000, false)
+ * once we support only ESP32-R1 the timer functions can be optimized to use only a
+ * single 64-bit timer.
  */
 struct TIMER_config {
     int timerID;
@@ -51,6 +58,7 @@ struct TIMER_config {
     { 0, NULL, 32 },
     { 1, NULL, 32 },
     { 2, NULL, 32 },
+    { 3, NULL, 32 },
     { -1, NULL, 0 }
 };
 
