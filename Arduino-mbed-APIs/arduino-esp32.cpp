@@ -12,24 +12,49 @@ using namespace std;
 #include "arduino-util.h"
 #include <time.h>
 
-
 #if defined(ARDUINO_ARCH_ESP32)
+
+#include "soc/efuse_reg.h"
+
+
 /*
  * ARDUINO_ARCH_ESP32 ESP32 development board
  * Heltec ESP32 boards
  */
 
-int
-CPUID(uint8_t *buf, int maxSize, uint32_t xorval)
+int CPUID(uint8_t *buf, int maxSize, uint32_t xorval)
 {
- 	uint64_t chipid = ESP.getEfuseMac();//The chip ID is essentially its MAC address(length: 6 bytes).
+    uint8_t uuid[16];
+    int f1 = 0x6aa0f551;	// EFUSE_BLK0_RDATA1_REG address
+    int f2 = 0x6aa0f55d;	// EFUSE_BLK0_RDATA2_REG address
     
-    
-    if (maxSize >= sizeof(chipid)) {
-        memset(buf, 0, maxSize);
-        chipid = chipid ^ xorval;
-        memcpy(&chipid, buf, sizeof(chipid));
-        return sizeof(chipid) ;
+    if (maxSize >= sizeof(uuid)) {
+        int fa = f1 ^ xorval;
+        int fb = f2 ^ xorval;
+        
+        uint32_t mac_low = REG_READ(fa);
+        uint32_t mac_high =  REG_READ(fb);
+        
+        uuid[0] = mac_high >> 8;
+        uuid[1] = mac_high;
+        uuid[2] = mac_low >> 24;
+        uuid[3] = mac_low >> 16;
+        uuid[4] = mac_low >> 8;
+        uuid[5] = mac_low;
+        
+        uuid[6] = uuid[0] ^ 0x16;
+        uuid[7] = uuid[1] ^ 0x27;
+        uuid[8] = uuid[2] ^ 0x38;
+        uuid[9] = uuid[4] ^ 0x49;
+        uuid[10] = uuid[5] ^ 0x50;
+        uuid[11] = uuid[5] ^ 0x61;
+        
+        uuid[12] = ESP.getChipRevision();
+        uuid[13] = 0x12;
+        uuid[14] = 0x34;
+        uuid[15] = 0x56;
+        memcpy(buf, &uuid[0], sizeof(uuid));
+        return sizeof(uuid);
     }
     return 0;
 }
