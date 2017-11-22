@@ -12,10 +12,17 @@
 
 #include <arduino.h>
 #include "Callback-A.h"
+#include <sys/time.h>
+#include <time.h>
 #include <SPI.h>
 #undef min
 #undef max
 #undef map
+
+#ifdef ARDUINO_ARCH_ESP32
+#include <rom/rtc.h>
+#include <esp_deep_sleep.h>
+#endif
 
 typedef int PinName;
 #define NC	-1
@@ -51,13 +58,20 @@ extern void setTickerStartSecs(int secs);
 extern int CPUID(uint8_t *buf, int maxSize, uint32_t xorval);
 extern void sleep(void);
 extern void deepsleep(void);
+extern time_t cvt_date(char const *date, char const *time);
 
 #define MAX_TIMEOUTS	10
+extern int maxTimeouts;
 class Timeout;
 struct TimeoutVector {
     Timeout *timer;
 };
 extern TimeoutVector TimeOuts[];
+
+#ifdef ARDUINO_ARCH_ESP32
+extern const char *ESP32WakeUpReason(esp_deep_sleep_wakeup_cause_t wakeup_reason);
+extern const char *ESP32ResetReason(RESET_REASON r);
+#endif
 
 
 /*

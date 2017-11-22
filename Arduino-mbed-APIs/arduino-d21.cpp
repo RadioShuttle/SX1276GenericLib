@@ -14,6 +14,22 @@ using namespace std;
 
 
 #if defined(__SAMD21G18A__) || defined(__SAMD21J18A__)
+
+// Convert compile time to system time
+time_t cvt_date(char const *date, char const *time)
+{
+    char s_month[5];
+    int year;
+    struct tm t;
+    static const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+    sscanf(date, "%s %d %d", s_month, &t.tm_mday, &year);
+    sscanf(time, "%2d %*c %2d %*c %2d", &t.tm_hour, &t.tm_min, &t.tm_sec);
+    // Find where is s_month in month_names. Deduce month value.
+    t.tm_mon = (strstr(month_names, s_month) - month_names) / 3;
+    t.tm_year = year - 1900;
+    return (int)mktime(&t);
+}
+
 /*
  * __SAMD21J18A__ is the SamD21 Explained Board
  * __SAMD21G18A__ is Genuino Zero-Board (compatible with the LoRa board)
@@ -348,7 +364,7 @@ void TCC2_Handler()
     t->CTRLA.reg &= ~TCC_CTRLA_ENABLE;   // Disable TC
     while (t->SYNCBUSY.bit.ENABLE == 1); // wait for sync
     
-    for (int i = 0; i < MAX_TIMEOUTS-1; i++) {
+    for (int i = 0; i < maxTimeouts-1; i++) {
         struct TimeoutVector *tvp = &TimeOuts[i];
         if (tvp->timer && nsecs >= tvp->timer->_timeout) {
             Timeout *saveTimer = tvp->timer;

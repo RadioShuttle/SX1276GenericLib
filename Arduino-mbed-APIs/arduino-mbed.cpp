@@ -240,6 +240,7 @@ void wait_ms(uint32_t ms)
 }
 
 struct TimeoutVector TimeOuts[MAX_TIMEOUTS];
+int maxTimeouts = MAX_TIMEOUTS;
 
 void
 InterruptIn::rise(Callback<void()> func) {
