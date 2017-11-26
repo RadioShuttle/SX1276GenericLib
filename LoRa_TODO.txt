@@ -1,8 +1,6 @@
-
 Move finished tasks to Done section:
 
 TODOs:
-- add support for Linux - add sx1276-Linux-hal.h/cpp
 - Add support to provide the send/receive packet buffer,
   no need to allocate packet data in the sx1276 driver. Can be provided
   Rx/Tx parameters, this avoids double memory usage

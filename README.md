@@ -18,6 +18,9 @@ The following Lora modules are supported:
 - Murata MURATA_SX1276 (CMWX1ZZABZ-078, used the STM B_L072Z_LRWAN1 board)
 - SX1276MB1MAS (433, 868 MHz version)
 - SX1276MB1LAS (433, 915 MHz version)
+- SX1276 Heltec (868 MHz version)
+- SX1278 Heltec (433 MHz version)
+
 
 ## Getting Started for Developers
 Import the mbed sample project:
