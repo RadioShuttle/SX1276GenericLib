@@ -406,7 +406,7 @@ void SX1276Generic::Reset( void )
 	*_reset = 0;
 	wait_ms( 1 );
     *_reset = 1;
-    _reset->input();	// I don't know my input again, maybe to save power (Helmut T)
+    _reset->input();	// I don't know why input again, maybe to save power (Helmut T)
 	wait_ms( 6 );
 }
 
