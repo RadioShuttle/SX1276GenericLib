@@ -30,6 +30,11 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define XSPI	SPI
 #endif
 
+#ifdef DEVICE_LOWPOWERTIMER
+ #define MyTimeout LowPowerTimeout
+#else
+ #define MyTimeout Timeout
+#endif
 
 /*!
  * Actual implementation of a SX1276 radio, includes some modifications to make it
@@ -74,9 +79,9 @@ protected:
     /*!
      * Tx and Rx timers
      */
-    Timeout txTimeoutTimer;
-    Timeout rxTimeoutTimer;
-    Timeout rxTimeoutSyncWord;
+    MyTimeout txTimeoutTimer;
+    MyTimeout rxTimeoutTimer;
+    MyTimeout rxTimeoutSyncWord;
     
     
 private:
