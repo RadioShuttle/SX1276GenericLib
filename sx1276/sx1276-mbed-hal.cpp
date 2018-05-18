@@ -116,7 +116,12 @@ SX1276Generic::~SX1276Generic()
         *_tcxo = 0;
         delete (_tcxo);
     }
-    Reset(); // to put chip back into fresh state
+    /*
+     * Reset(); // to put chip back into fresh state
+     * We disabled the Reset() to allow the destructor to keep the
+     * chip in Sleep() mode to stay turned off with little energy 
+     * consumption.
+     */
     delete _reset;
     delete _spi;
     delete _nss;
