@@ -49,3 +49,7 @@ Done:
 - Fixed calculation of the frequency error with negative numbers
 - Enhanced CadDone support to use DIO0 interrupt when DIO3 is NC.
   This means for RadioShuttle LoRa we just need DIO0
+- Enhanced it to use mbed LowPowerTimer which goes into deeplseep while
+  waiting for received packets
+- Added support for an external Power On/Off of the Heltec L4 SX1276 antenna switch
+  Sleep and suspend turn off the power

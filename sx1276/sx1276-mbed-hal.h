@@ -46,6 +46,7 @@ protected:
     /*!
      * Antenna switch GPIO pins objects
      */
+    DigitalOut *_antSwitchPwr;
     DigitalOut *_antSwitch;
     DigitalOut *_antSwitchTX;
     DigitalOut *_antSwitchTXBoost;
@@ -89,7 +90,9 @@ private:
      * triggers definition
      */
     typedef void (SX1276Generic::*Trigger)(void);
-
+    static const int PWR_OFF = 1;
+    static const int PWR_ON = 0;
+    
 
 public:
     SX1276Generic( RadioEvents_t *events, BoardType_t board,

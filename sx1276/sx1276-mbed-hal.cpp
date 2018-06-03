@@ -37,6 +37,7 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
     this->RadioEvents = events;
     boardConnected = board;
     
+    _antSwitchPwr = NULL;
     _antSwitch = NULL;
     _antSwitchTX = NULL;
     _antSwitchTXBoost = NULL;
@@ -51,6 +52,9 @@ SX1276Generic::SX1276Generic( RadioEvents_t *events, BoardType_t board,
             _antSwitch = new DigitalOut(antSwitch);
             break;
         case RFM95_SX1276:
+            break;
+        case HELTEC_L4_1276:
+            _antSwitchPwr = new DigitalOut(antSwitch);
             break;
         case MURATA_SX1276:
             _antSwitch = new DigitalOut(antSwitch);
@@ -105,6 +109,8 @@ SX1276Generic::~SX1276Generic()
     rxTimeoutTimer.detach();
     rxTimeoutSyncWord.detach();
     
+    if (_antSwitchPwr)
+        delete(_antSwitchPwr);
     if (_antSwitch)
     	delete _antSwitch;
     if (_antSwitchTX)
@@ -271,7 +277,7 @@ uint8_t SX1276Generic::GetPaSelect( uint32_t channel )
 {
     if( channel > RF_MID_BAND_THRESH )
     {
-        if (boardConnected == SX1276MB1LAS || boardConnected == RFM95_SX1276 || boardConnected == MURATA_SX1276)
+        if (boardConnected == SX1276MB1LAS || boardConnected == RFM95_SX1276 || boardConnected == MURATA_SX1276 || boardConnected == HELTEC_L4_1276)
         {
             return RF_PACONFIG_PASELECT_PABOOST;
         }
@@ -311,6 +317,8 @@ void SX1276Generic::AntSwInit( void )
     	*_antSwitchTX = 0;
 		*_antSwitchTXBoost = 0;
     }
+    if (boardConnected == HELTEC_L4_1276)
+        *_antSwitchPwr = PWR_OFF;
 }
 
 void SX1276Generic::AntSwDeInit( void )
@@ -321,6 +329,8 @@ void SX1276Generic::AntSwDeInit( void )
         *_antSwitchTX = 0;
     	*_antSwitchTXBoost = 0;
     }
+    if (boardConnected == HELTEC_L4_1276)
+        *_antSwitchPwr = PWR_OFF;
 }
 
 
@@ -339,6 +349,8 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
                 if (_antSwitch)
 	        		*_antSwitch = 1;
 			}
+            if (boardConnected == HELTEC_L4_1276)
+                *_antSwitchPwr = PWR_ON;
             break;
         case RFLR_OPMODE_RECEIVER:
         case RFLR_OPMODE_RECEIVER_SINGLE:
@@ -347,7 +359,9 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
                 *_antSwitch = 1;  // Murata-RX
             	*_antSwitchTX = 0;
             	*_antSwitchTXBoost = 0;
-            } else {
+            } else if (boardConnected == HELTEC_L4_1276) {
+                *_antSwitchPwr = PWR_ON;
+    		} else {
                 if (_antSwitch)
         			_antSwitch = 0;
             }
@@ -359,7 +373,9 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
                 *_antSwitch = 0;  //Murata-RX
             	*_antSwitchTX = 0;
             	*_antSwitchTXBoost = 0;
-            } else {
+            } else if (boardConnected == HELTEC_L4_1276) {
+                *_antSwitchPwr = PWR_OFF;
+    		} else {
                 if (_antSwitch)
         			*_antSwitch = 0;
             }

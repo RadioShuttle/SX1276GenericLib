@@ -72,6 +72,7 @@ typedef enum BoardType
     SX1276MB1LAS,
     RFM95_SX1276,
     MURATA_SX1276,
+    HELTEC_L4_1276,
     UNKNOWN
 }BoardType_t;
 
