@@ -19,7 +19,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #include "mbed.h"
 #endif
 #ifdef ARDUINO
-#include <arduino.h>
+#include <Arduino.h>
 #endif
 
 /*!
