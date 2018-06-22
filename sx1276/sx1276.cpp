@@ -1058,7 +1058,7 @@ void SX1276::StartCad( void )
 
 void SX1276::SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time_secs )
 {
-    uint32_t timeout = ( uint32_t )( time * 1e6 );
+    uint32_t timeout = ( uint32_t )( time_secs * 1e6 );
     
     SetChannel( freq );
     
