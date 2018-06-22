@@ -370,7 +370,7 @@ public:
      * @param [IN]: time       Transmission mode timeout [s]
      */
 
-    virtual void SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time );
+    virtual void SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time_secs );
 
     /*!
      * @brief Returns the maximal transfer unit for a given modem

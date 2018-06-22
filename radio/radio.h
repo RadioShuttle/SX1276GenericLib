@@ -414,7 +414,7 @@ public:
      * @param [IN]: power      Sets the output power [dBm]
      * @param [IN]: time       Transmission mode timeout [s]
      */
-    virtual void SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time ) = 0;
+    virtual void SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time_secs ) = 0;
 
     /*!
      * @brief Returns the maximal transfer unit for a given modem
