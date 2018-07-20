@@ -1,6 +1,10 @@
 Move finished tasks to Done section:
 
 TODOs:
+- Check Errata Note about 500 KHz Bandwidth (test 500 Khz)
+- Cherck if RegDetectOptimize DetectionOptimize must be set for SF6?
+- Fix SetRfTxPower to support -4 - +15 dBm for RFO HF/LF, +2 - +15 dBm
+  See RegPaConfig reg, PaSelect page 83
 - Add support to provide the send/receive packet buffer,
   no need to allocate packet data in the sx1276 driver. Can be provided
   Rx/Tx parameters, this avoids double memory usage
