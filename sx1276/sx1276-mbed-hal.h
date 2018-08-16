@@ -30,7 +30,7 @@ Maintainers: Miguel Luis, Gregory Cristian and Nicolas Huguenin
 #define XSPI	SPI
 #endif
 
-#ifdef DEVICE_LOWPOWERTIMER
+#if defined(DEVICE_LPTICKER) || defined(DEVICE_LOWPOWERTIMER) // LOWPOWERTIMER in older mbed versions
  #define MyTimeout LowPowerTimeout
 #else
  #define MyTimeout Timeout
