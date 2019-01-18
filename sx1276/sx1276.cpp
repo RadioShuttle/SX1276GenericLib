@@ -1082,6 +1082,7 @@ int16_t SX1276::MaxMTUSize( RadioModems_t modem )
     {
         case MODEM_FSK:
             mtuSize = RX_BUFFER_SIZE;
+			break;
         case MODEM_LORA:
             mtuSize = RX_BUFFER_SIZE;
             break;
@@ -1522,10 +1523,12 @@ void SX1276::OnDio0Irq( void )
                     }
                 }
             }
+        	this->settings.State = RF_IDLE;
+			break;
             case MODEM_FSK:
             default:
         	this->settings.State = RF_IDLE;
-            	break;
+				break;
         }
         default:
             break;
