@@ -174,7 +174,7 @@ void SX1276Generic::SpiInit( void )
 #else
     _spi->frequency( frequencyToSet );
 #endif
-    wait_ms(100);
+    Sleep_ms(100);
 }
 
 void SX1276Generic::IoIrqInit( DioIrqHandler *irqHandlers )
@@ -410,7 +410,7 @@ void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int ti
 void
 SX1276Generic::Sleep_ms(int ms)
 {
-    wait_ms(ms);
+    wait_us(ms * 1000);
 }
 
 bool SX1276Generic::CheckRfFrequency( uint32_t frequency )
@@ -425,10 +425,10 @@ void SX1276Generic::Reset( void )
 {
 	_reset->output();
 	*_reset = 0;
-	wait_ms( 1 );
+	Sleep_ms( 1 );
     *_reset = 1;
     _reset->input();	// I don't know why input again, maybe to save power (Helmut T)
-	wait_ms( 6 );
+	Sleep_ms( 6 );
 }
 
 void SX1276Generic::Write( uint8_t addr, uint8_t data )
