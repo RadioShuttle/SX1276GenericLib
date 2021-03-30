@@ -383,24 +383,24 @@ void SX1276Generic::SetAntSw( uint8_t opMode )
     }
 }
 
-void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int timeout_ms)
+void SX1276Generic::SetTimeout(TimeoutTimer_t timer, timeoutFuncPtr func, int timeout_us)
 {
     switch(timer) {
 	    case RXTimeoutTimer:
             if (func)
-                rxTimeoutTimer.attach_us(callback(this, func), timeout_ms);
+                rxTimeoutTimer.attach_us(callback(this, func), timeout_us);
             else
                 rxTimeoutTimer.detach();
             break;
         case TXTimeoutTimer:
             if (func)
-                txTimeoutTimer.attach_us(callback(this, func), timeout_ms);
+                txTimeoutTimer.attach_us(callback(this, func), timeout_us);
             else
                 txTimeoutTimer.detach();
             break;
         case RXTimeoutSyncWordTimer:
             if (func)
-                rxTimeoutSyncWord.attach_us(callback(this, func), timeout_ms);
+                rxTimeoutSyncWord.attach_us(callback(this, func), timeout_us);
             else
                 rxTimeoutSyncWord.detach();
             break;
